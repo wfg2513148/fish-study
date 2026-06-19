@@ -148,6 +148,38 @@ class StudyProtocolCliTests(unittest.TestCase):
             self.assertIn("knowledge_link_or_pending", stderr)
             self.assertFalse((root / "outputs" / "2026-06-19").exists())
 
+    def test_invalid_date_cannot_escape_output_or_vault_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bad_input = root / "bad-review-plan.json"
+            bad_input.write_text(
+                json.dumps(
+                    {
+                        "task_type": "review_plan_source",
+                        "date": "../escaped",
+                        "items": [],
+                        "uncertain_items": [],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            stdout, stderr, status = self._run_protocol(
+                "review-plan",
+                str(bad_input),
+                "--output-root",
+                str(root / "outputs"),
+                "--vault-root",
+                str(root / "vault"),
+            )
+
+            self.assertEqual(status, 1)
+            self.assertEqual(stdout, "")
+            self.assertIn("ERROR:", stderr)
+            self.assertFalse((root / "escaped").exists())
+            self.assertFalse((root / "vault" / "escaped.md").exists())
+
     def _run_protocol(self, *args: str) -> tuple[str, str, int]:
         stdout = io.StringIO()
         stderr = io.StringIO()

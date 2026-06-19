@@ -42,6 +42,23 @@ class StudyProtocolModelTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 load_homework_plan(path)
 
+    def test_invalid_date_fails(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bad-date.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "task_type": "homework_plan",
+                        "date": "../escaped",
+                        "items": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                load_homework_plan(path)
+
     def test_unknown_sticker_color_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bad.json"

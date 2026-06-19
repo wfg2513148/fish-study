@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 import json
 from pathlib import Path
 from typing import Any
@@ -74,7 +75,7 @@ def load_homework_plan(path: Path | str) -> HomeworkPlan:
     _require_task_type(data, "homework_plan")
     return HomeworkPlan(
         task_type=data["task_type"],
-        date=str(data.get("date", "")),
+        date=_iso_date(data.get("date", "")),
         items=tuple(_homework_item(item) for item in data.get("items", [])),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
@@ -85,7 +86,7 @@ def load_wrong_question_review(path: Path | str) -> WrongQuestionReview:
     _require_task_type(data, "wrong_question_review")
     return WrongQuestionReview(
         task_type=data["task_type"],
-        date=str(data.get("date", "")),
+        date=_iso_date(data.get("date", "")),
         items=tuple(_wrong_question_item(item) for item in data.get("items", [])),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
@@ -96,7 +97,7 @@ def load_review_plan_source(path: Path | str) -> ReviewPlanSource:
     _require_task_type(data, "review_plan_source")
     return ReviewPlanSource(
         task_type=data["task_type"],
-        date=str(data.get("date", "")),
+        date=_iso_date(data.get("date", "")),
         items=tuple(_wrong_question_item(item) for item in data.get("items", [])),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
@@ -120,6 +121,17 @@ def _require_task_type(data: dict[str, Any], expected: str) -> None:
     actual = data.get("task_type")
     if actual != expected:
         raise ValueError(f"unknown task_type {actual!r}, expected {expected!r}")
+
+
+def _iso_date(value: Any) -> str:
+    text = str(value)
+    try:
+        parsed = date.fromisoformat(text)
+    except ValueError as exc:
+        raise ValueError(f"invalid date {text!r}, expected YYYY-MM-DD") from exc
+    if parsed.isoformat() != text:
+        raise ValueError(f"invalid date {text!r}, expected YYYY-MM-DD")
+    return text
 
 
 def _knowledge_match(data: dict[str, Any]) -> KnowledgeMatch:
