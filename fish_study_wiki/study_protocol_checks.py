@@ -73,17 +73,19 @@ def _no_answers_in_student_output(student_output: str) -> CheckRow:
 def _has_knowledge_or_pending(
     items: tuple[object, ...], uncertain_items: tuple[str, ...]
 ) -> CheckRow:
-    has_knowledge = any(_knowledge_matches(item) for item in items)
-    has_pending = bool(uncertain_items) or any(
-        match.is_pending for item in items for match in _knowledge_matches(item)
+    missing = tuple(
+        _item_label(item)
+        for item in items
+        if not _knowledge_matches(item)
+        and not _has_item_uncertainty(item, uncertain_items)
     )
     return CheckRow(
-        passed=has_knowledge or has_pending,
+        passed=not missing,
         code="knowledge_link_or_pending",
         message=(
             "已包含知识点链接或待定位项"
-            if has_knowledge or has_pending
-            else "缺少知识点链接，也未列出待定位"
+            if not missing
+            else f"以下项目缺少知识点链接或待定位: {', '.join(missing)}"
         ),
     )
 
@@ -91,21 +93,20 @@ def _has_knowledge_or_pending(
 def _low_confidence_flagged(
     items: tuple[object, ...], uncertain_items: tuple[str, ...]
 ) -> CheckRow:
-    low_matches = [
-        match
+    unflagged = tuple(
+        _item_label(item)
         for item in items
         for match in _knowledge_matches(item)
         if match.confidence == "low"
-    ]
-    flagged = bool(uncertain_items) or all(match.is_pending for match in low_matches)
-    passed = not low_matches or flagged
+        and not _has_low_confidence_flag(item, match, uncertain_items)
+    )
     return CheckRow(
-        passed=passed,
+        passed=not unflagged,
         code="low_confidence_flagged",
         message=(
             "低置信度内容已标给家长确认"
-            if passed
-            else "存在低置信度知识点，但未进入待确认项"
+            if not unflagged
+            else f"以下低置信度项目未进入待确认项: {', '.join(unflagged)}"
         ),
     )
 
@@ -141,3 +142,49 @@ def _sticker_rules_used(items: tuple[object, ...]) -> CheckRow:
 
 def _knowledge_matches(item: object) -> tuple[KnowledgeMatch, ...]:
     return getattr(item, "matched_knowledge", ())
+
+
+def _has_item_uncertainty(item: object, uncertain_items: tuple[str, ...]) -> bool:
+    return any(match.is_pending for match in _knowledge_matches(item)) or any(
+        _mentions_item(uncertain_item, item, ())
+        for uncertain_item in uncertain_items
+    )
+
+
+def _has_low_confidence_flag(
+    item: object,
+    match: KnowledgeMatch,
+    uncertain_items: tuple[str, ...],
+) -> bool:
+    return match.is_pending or any(
+        _mentions_item(uncertain_item, item, (match.note,))
+        for uncertain_item in uncertain_items
+    )
+
+
+def _mentions_item(
+    uncertain_item: str,
+    item: object,
+    extra_tokens: tuple[str, ...],
+) -> bool:
+    text = uncertain_item.strip()
+    if not text:
+        return False
+    return any(
+        token in text or text in token
+        for token in _item_tokens(item) + extra_tokens
+    )
+
+
+def _item_tokens(item: object) -> tuple[str, ...]:
+    tokens = (
+        getattr(item, "raw_text", ""),
+        getattr(item, "question_id", ""),
+    )
+    return tuple(token for token in tokens if token)
+
+
+def _item_label(item: object) -> str:
+    for token in _item_tokens(item):
+        return token
+    return getattr(item, "subject", "") or "未命名项目"

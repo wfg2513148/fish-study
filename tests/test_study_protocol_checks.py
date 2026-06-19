@@ -86,10 +86,42 @@ class StudyProtocolCheckTests(unittest.TestCase):
         row = next(row for row in rows if row.code == "knowledge_link_or_pending")
         self.assertFalse(row.passed)
 
+    def test_multi_item_empty_unmarked_item_fails_knowledge_check(self):
+        plan = homework_plan()
+        empty_item = replace(
+            plan.items[0],
+            raw_text="完成第2题",
+            matched_knowledge=(),
+        )
+        rows = check_homework_plan(
+            replace(plan, items=(plan.items[0], empty_item)),
+            "练习区",
+            "out.html",
+        )
+
+        row = next(row for row in rows if row.code == "knowledge_link_or_pending")
+        self.assertFalse(row.passed)
+
     def test_low_confidence_must_be_flagged(self):
         plan = homework_plan()
         item = replace(plan.items[0], matched_knowledge=(knowledge("low"),))
         rows = check_homework_plan(replace(plan, items=(item,)), "练习区", "out.html")
+
+        row = next(row for row in rows if row.code == "low_confidence_flagged")
+        self.assertFalse(row.passed)
+
+    def test_unrelated_uncertain_item_does_not_flag_low_confidence(self):
+        plan = homework_plan()
+        item = replace(
+            plan.items[0],
+            raw_text="完成第2题",
+            matched_knowledge=(knowledge("low", "第1章 1.2 同位角"),),
+        )
+        rows = check_homework_plan(
+            replace(plan, items=(item,), uncertain_items=("第99题 待确认",)),
+            "练习区",
+            "out.html",
+        )
 
         row = next(row for row in rows if row.code == "low_confidence_flagged")
         self.assertFalse(row.passed)
