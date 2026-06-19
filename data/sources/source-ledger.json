@@ -1,0 +1,35 @@
+[
+  {
+    "source_id": "5star-math-zjjy-g7b-2026spring",
+    "subject": "数学",
+    "grade": "七年级",
+    "volume": "下册",
+    "version": "浙教版",
+    "source_type": "courseware",
+    "status": "available",
+    "local_path": "/Users/kwang/fish-study/sources/raw/5star-math-zjjy-g7b-2026spring.zip",
+    "sha256": "25cb0437ab0d8fa94eb661d402ffda3b06165545d50d591785705a4890d4e6ff"
+  },
+  {
+    "source_id": "5star-science-zjjy-g7b-2026spring",
+    "subject": "科学",
+    "grade": "七年级",
+    "volume": "下册",
+    "version": "浙教版",
+    "source_type": "courseware",
+    "status": "available",
+    "local_path": "/Users/kwang/fish-study/sources/raw/5star-science-zjjy-g7b-2026spring.zip",
+    "sha256": "caddab3449d0ef6afe919c586946676f9e086c4bef5a432b4ecaa9aa55ec579a"
+  },
+  {
+    "source_id": "5star-english-pep-g7b-2026spring",
+    "subject": "英语",
+    "grade": "七年级",
+    "volume": "下册",
+    "version": "人教版",
+    "source_type": "courseware",
+    "status": "available",
+    "local_path": "/Users/kwang/fish-study/sources/raw/5star-english-pep-g7b-2026spring.zip",
+    "sha256": "a9405cd7ac82a4794e8264c3d0d4454b17944fec50b959925c56952f2626f1d1"
+  }
+]
