@@ -1,156 +1,90 @@
 import unittest
+from pathlib import Path
 
 from fish_study_wiki.study_protocol_models import (
-    HomeworkItem,
-    HomeworkPlan,
-    KnowledgeMatch,
-    ReviewPlanSource,
-    WrongQuestionItem,
-    WrongQuestionReview,
+    load_weekly_review_source,
+    load_wrong_question_training,
 )
 from fish_study_wiki.study_protocol_render import (
-    render_homework_parent_markdown,
-    render_homework_student_html,
-    render_review_plan_markdown,
-    render_wrong_question_parent_markdown,
-    render_wrong_question_student_html,
+    render_training_answer_html,
+    render_training_student_html,
+    render_weekly_answer_html,
+    render_weekly_review_markdown,
+    render_weekly_worksheet_html,
 )
 
 
-ANSWER_MARKERS = ("答案", "解析", "参考答案")
+ANSWER_MARKERS = ("答案", "参考答案", "解析", "解答")
 
 
-def knowledge(confidence: str = "high", note: str = "第1章 1.1 直线的相交"):
-    return KnowledgeMatch(
-        grade="七年级",
-        volume="下册",
-        chapter="第1章",
-        note=note,
-        confidence=confidence,
-    )
+def wrong_training():
+    return load_wrong_question_training(Path("samples/wrong-question-training.json"))
 
 
-def homework_plan() -> HomeworkPlan:
-    return HomeworkPlan(
-        task_type="homework_plan",
-        date="2026-06-19",
-        items=(
-            HomeworkItem(
-                subject="数学",
-                raw_text="完成第1-3题",
-                book_or_source="作业本",
-                page="12",
-                question_range="1-3",
-                deadline="今晚",
-                matched_knowledge=(knowledge(),),
-                status="matched",
-            ),
-        ),
-        uncertain_items=(),
-    )
-
-
-def wrong_review() -> WrongQuestionReview:
-    return WrongQuestionReview(
-        task_type="wrong_question_review",
-        date="2026-06-19",
-        items=(
-            WrongQuestionItem(
-                subject="科学",
-                question_id="第8题",
-                sticker_color="red",
-                reason="不会",
-                problem_type="概念识别",
-                matched_knowledge=(
-                    knowledge("medium", "第2章 第3节 第1课时 原子结构模型与原子的构成"),
-                ),
-                next_action="补概念并做基础变式",
-            ),
-        ),
-        uncertain_items=(),
-    )
+def weekly_source():
+    return load_weekly_review_source(Path("samples/weekly-review-source.json"))
 
 
 class StudyProtocolRenderTests(unittest.TestCase):
-    def test_homework_student_html_has_required_print_sections_without_answers(self):
-        html = render_homework_student_html(homework_plan())
+    def test_training_student_html_groups_tasks_without_answers_or_source_ids(self):
+        html = render_training_student_html(wrong_training())
 
+        self.assertIn("2026-06-19 错题分析训练卷", html)
         self.assertIn("@page { size: A4", html)
-        self.assertIn("知识点预习", html)
-        self.assertIn("热身区", html)
-        self.assertIn("正式任务清单", html)
-        self.assertIn("自我检查区", html)
+        self.assertIn("错误", html)
+        self.assertIn("×", html)
+        self.assertIn("补救", html)
+        self.assertIn("难度：基础", html)
+        self.assertIn("难度：标准", html)
+        self.assertIn("自检区", html)
+        self.assertIn("用一句话说明原子核", html)
+        self.assertNotIn("question_id", html)
+        self.assertNotIn("第8题", html)
         for marker in ANSWER_MARKERS:
             self.assertNotIn(marker, html)
 
-    def test_wrong_question_student_html_uses_color_strategy_without_answers(self):
-        html = render_wrong_question_student_html(wrong_review())
+    def test_training_answer_html_contains_answers_scoring_mastery_and_next_difficulty(self):
+        html = render_training_answer_html(wrong_training())
 
-        self.assertIn("知识点回顾", html)
-        self.assertIn("贴纸策略", html)
-        self.assertIn("同类变式题", html)
-        self.assertIn("红色", html)
-        self.assertIn("先补知识点", html)
+        self.assertIn("错题分析训练答案", html)
+        self.assertIn("答案", html)
+        self.assertIn("评分点", html)
+        self.assertIn("掌握判断", html)
+        self.assertIn("下一次难度建议", html)
+        self.assertIn("原子核在中心", html)
+
+    def test_weekly_review_markdown_contains_required_review_sections(self):
+        text = render_weekly_review_markdown(weekly_source())
+
+        self.assertIn("错因分布", text)
+        self.assertIn("反复知识点", text)
+        self.assertIn("高频二级错因", text)
+        self.assertIn("难度是否合适/过难过易", text)
+        self.assertIn("遗忘风险/复测队列", text)
+        self.assertIn("下周优先级", text)
+        self.assertIn("红色（不会）：2 组", text)
+        self.assertIn("D+7", text)
+
+    def test_weekly_worksheet_html_has_no_answers(self):
+        html = render_weekly_worksheet_html(weekly_source())
+
+        self.assertIn("周复盘训练卷", html)
+        self.assertIn("复测队列", html)
+        self.assertIn("本周训练题", html)
+        self.assertIn("自检区", html)
+        self.assertIn("画出原子结构简图", html)
         for marker in ANSWER_MARKERS:
             self.assertNotIn(marker, html)
 
-    def test_parent_markdown_is_separate_and_can_include_reference_notes(self):
-        text = render_homework_parent_markdown(homework_plan())
+    def test_weekly_answer_html_contains_answers(self):
+        html = render_weekly_answer_html(weekly_source())
 
-        self.assertIn("家长参考", text)
-        self.assertIn("预计用时", text)
-        self.assertIn("检查顺序", text)
-        self.assertIn("答案/参考说明", text)
-
-    def test_wrong_parent_markdown_includes_low_confidence_warning(self):
-        review = WrongQuestionReview(
-            task_type="wrong_question_review",
-            date="2026-06-19",
-            items=(
-                WrongQuestionItem(
-                    subject="数学",
-                    question_id="第12题",
-                    sticker_color="yellow",
-                    reason="马虎",
-                    problem_type="计算",
-                    matched_knowledge=(knowledge("low", "第1章 1.2 同位角"),),
-                    next_action="整理检查清单",
-                ),
-            ),
-            uncertain_items=("第12题 知识点需家长确认",),
-        )
-
-        text = render_wrong_question_parent_markdown(review)
-
-        self.assertIn("低置信度提醒", text)
-        self.assertIn("第1章 1.2 同位角", text)
-        self.assertIn("第12题 知识点需家长确认", text)
-
-    def test_review_plan_markdown_uses_red_yellow_blue_counts(self):
-        source = ReviewPlanSource(
-            task_type="review_plan_source",
-            date="2026-06-19",
-            items=(
-                wrong_review().items[0],
-                WrongQuestionItem(
-                    subject="数学",
-                    question_id="第12题",
-                    sticker_color="blue",
-                    reason="时间不够",
-                    problem_type="计算",
-                    matched_knowledge=(knowledge("high", "第1章 1.2 同位角"),),
-                    next_action="做限时训练",
-                ),
-            ),
-            uncertain_items=(),
-        )
-
-        text = render_review_plan_markdown(source)
-
-        self.assertIn("红色：1 题", text)
-        self.assertIn("黄色：0 题", text)
-        self.assertIn("蓝色：1 题", text)
-        self.assertIn("未来 3 天安排", text)
+        self.assertIn("周复盘训练答案", html)
+        self.assertIn("答案参考", html)
+        self.assertIn("训练题答案与评分", html)
+        self.assertIn("评分点", html)
+        self.assertIn("掌握判断", html)
+        self.assertIn("下一次难度建议", html)
 
 
 if __name__ == "__main__":
