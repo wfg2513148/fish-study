@@ -112,10 +112,10 @@ class StudyProtocolWriterTests(unittest.TestCase):
             self.assertEqual(result.report_markdown.name, "weekly-review.md")
             self.assertEqual(result.student_html.name, "weekly-review.html")
             self.assertEqual(result.answer_html.name, "weekly-review-answers.html")
-            self.assertEqual(result.report_markdown.parent.name, "2026-06-18")
+            self.assertEqual(result.report_markdown.parent.name, "2026-06-21")
             self.assertEqual(
                 result.obsidian_note,
-                root / "vault" / "40-复习计划" / "2026-06-18.md",
+                root / "vault" / "40-复习计划" / "2026-06-21.md",
             )
             self.assertIn("难度是否合适", result.report_markdown.read_text(encoding="utf-8"))
             self.assertIn("错题周复盘", result.obsidian_note.read_text(encoding="utf-8"))

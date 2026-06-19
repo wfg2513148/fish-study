@@ -4,8 +4,9 @@
 
 ## 当前目标
 
-- 用拍照方式识别作业清单、错题卷和颜色贴纸标识。
-- 在做作业前生成清晰知识要点和可打印练习。
+- 用拍照方式识别已贴红黄蓝标签的错题卷。
+- 根据错因、知识点、题型和历史训练结果生成可打印训练卷与独立答案页。
+- 日常数据分析静默写入 Obsidian，每周输出完整复盘报告和巩固测试。
 - 将初一、初二各学科知识点沉淀到独立 Obsidian vault，减少每次从 PDF/课件重新解析。
 - 原始教材、教辅、课件只保存在本地；GitHub 仓库只保存流程、索引、模板和可复用脚本。
 
@@ -13,16 +14,23 @@
 
 在 Codex Desktop 中上传照片后使用：
 
-- `帮我生成今日学习计划`
 - `帮我生成错题知识点和测试题`
-- `根据这张作业清单生成打印版学习要点和练习`
-- `根据红黄蓝贴纸归因生成复习计划`
+- `帮我生成本周错题复盘和巩固测试`
+
+对应 CLI：
+
+```bash
+python3 -m fish_study_wiki.study_protocol_cli wrong samples/wrong-question-training.json
+python3 -m fish_study_wiki.study_protocol_cli weekly-review samples/weekly-review-source.json
+```
 
 颜色约定：
 
 - 红色：不会
 - 黄色：马虎
 - 蓝色：时间不够
+
+学生训练卷不包含答案、参考答案、解析或解答；批改答案页单独保存。
 
 ## 本地目录
 

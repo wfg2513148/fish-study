@@ -1,101 +1,123 @@
-# Codex 学习任务使用说明
+# Codex 错题学习工具使用说明
 
-本工具面向 Codex Desktop + Obsidian 学习流程。照片和 OCR 不在仓库内实现；Codex Desktop 先理解照片内容，再把结果整理成结构化 JSON，本仓库负责确定性检查、渲染和写入文件。
+本工具面向 Codex Desktop + Obsidian 本地学习流程。照片识别和题目理解由 Codex Desktop 完成；仓库只处理结构化 JSON，负责质量检查、打印材料渲染、Obsidian 记录和周复盘。
 
-## 从照片到 JSON
+当前只保留两个入口：
 
-在 Codex Desktop 中上传作业、错题或贴纸记录照片后，让 Codex 只输出 JSON，不要输出讲解正文。JSON 需要包含：
+- 日常：贴好红黄蓝标签的错题照片 -> 错因分析训练卷。
+- 每周：结构化错题数据 -> 周复盘报告和巩固测试。
 
-- `task_type`：`homework_plan`、`wrong_question_review` 或 `review_plan_source`。
-- `date`：学习日期，格式如 `2026-06-19`。
-- `items`：每条作业或错题的结构化信息。
-- `matched_knowledge`：已匹配的教材知识点；不能确定时使用 `note: "待定位"`。
-- `confidence`：`high`、`medium` 或 `low`。
-- `uncertain_items`：低置信度、待定位、看不清或需要家长确认的内容。
+## 日常错题训练
 
-可直接参考仓库内样例：
+家长先和孩子在线下看错题，并只用红黄蓝标记一级错因：
 
-- `samples/homework-plan.json`
-- `samples/wrong-question-review.json`
-- `samples/review-plan-source.json`
+- 红色：不会，表示知识、方法或迁移能力不足。
+- 黄色：马虎，表示审题、计算、符号、单位或书写问题。
+- 蓝色：时间不够，表示速度、路径选择或时间分配问题。
 
-## 今日学习计划
+在 Codex Desktop 上传照片后，可以说：
 
-生成学生可打印 HTML、家长 Markdown 参考和 Obsidian 每日学习记录：
+```text
+帮我生成错题知识点和测试题
+```
+
+Codex 需要把照片结果整理成 `wrong_question_training` JSON，可参考：
 
 ```bash
-python3 -m fish_study_wiki.study_protocol_cli homework samples/homework-plan.json
+samples/wrong-question-training.json
+```
+
+运行：
+
+```bash
+python3 -m fish_study_wiki.study_protocol_cli wrong samples/wrong-question-training.json
 ```
 
 主 CLI alias：
 
 ```bash
-python3 -m fish_study_wiki.cli study-homework samples/homework-plan.json
+python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 ```
 
 默认输出：
 
-- 学生版：`outputs/YYYY-MM-DD/today-study-plan.html`
-- 家长参考：`outputs/YYYY-MM-DD/today-study-plan-parent.md`
-- Obsidian：`/Users/kwang/Downloads/obsidian/fish-study/30-每日学习计划/YYYY-MM-DD.md`
-
-## 错题知识点和测试题
-
-生成错题复盘学生 HTML、家长 Markdown 参考，并写入错题归因和教材知识点记录：
-
-```bash
-python3 -m fish_study_wiki.study_protocol_cli wrong samples/wrong-question-review.json
-```
-
-主 CLI alias：
-
-```bash
-python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-review.json
-```
-
-默认输出：
-
-- 学生版：`outputs/YYYY-MM-DD/wrong-question-review.html`
-- 家长参考：`outputs/YYYY-MM-DD/wrong-question-review-parent.md`
+- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
+- 批改答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
 - Obsidian 错题归因：`/Users/kwang/Downloads/obsidian/fish-study/20-错题归因/YYYY-MM-DD.md`
-- Obsidian 知识点记录：`/Users/kwang/Downloads/obsidian/fish-study/10-教材Wiki/.../*.md`
+- Obsidian 知识点事件：`/Users/kwang/Downloads/obsidian/fish-study/10-教材Wiki/.../*.md`
 
-## 红黄蓝复习计划
+学生训练卷不包含答案、参考答案、解析或解答。答案页单独保存，用于家长批改和下一次难度调整。
 
-根据错题贴纸颜色生成 3 到 7 天复习计划，并写入 Obsidian 复习计划记录：
+## 每周复盘
+
+每周复盘基于已经沉淀的错题分析事件和训练结果，日常数据分析保持静默，周复盘才输出完整报告。
+
+在 Codex Desktop 中可以说：
+
+```text
+帮我生成本周错题复盘和巩固测试
+```
+
+Codex 需要整理成 `weekly_review` JSON，可参考：
 
 ```bash
-python3 -m fish_study_wiki.study_protocol_cli review-plan samples/review-plan-source.json
+samples/weekly-review-source.json
+```
+
+运行：
+
+```bash
+python3 -m fish_study_wiki.study_protocol_cli weekly-review samples/weekly-review-source.json
 ```
 
 主 CLI alias：
 
 ```bash
-python3 -m fish_study_wiki.cli study-review-plan samples/review-plan-source.json
+python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.json
 ```
 
 默认输出：
 
-- 复习计划 Markdown：`outputs/YYYY-MM-DD/review-plan.md`
-- Obsidian：`/Users/kwang/Downloads/obsidian/fish-study/40-复习计划/YYYY-MM-DD.md`
+- 周复盘报告：`outputs/YYYY-MM-DD/weekly-review.md`
+- 周巩固测试卷：`outputs/YYYY-MM-DD/weekly-review.html`
+- 周巩固答案页：`outputs/YYYY-MM-DD/weekly-review-answers.html`
+- Obsidian 复习计划：`/Users/kwang/Downloads/obsidian/fish-study/40-复习计划/YYYY-MM-DD.md`
 
-## 输出隔离
+周复盘报告包含错因分布、反复知识点、高频二级错因、难度是否合适、遗忘风险、复测队列和下周优先级。
 
-学生 HTML 不包含答案或解析，只保留知识点预习、热身、正式任务、复盘策略、自我检查和同类练习。家长 Markdown 单独保存，可包含参考说明和低置信度提醒，避免学生打印材料泄漏答案。
+## 难度校准
 
-如需改输出位置，使用：
+出题不只按知识点生成，还会结合训练结果判断难度是否合适。结构化数据中需要保留：
+
+- 同一知识点最近正确率。
+- 同一题型耗时和目标耗时。
+- 完成状态：完成、超时或未完成。
+- 主要错误。
+- 上一次题目难度。
+- 下一次建议难度。
+- D+1、D+3、D+7、D+14 复测窗口。
+
+默认策略：
+
+- 红色高风险知识点先用基础题和少量标准题，不直接上挑战题。
+- 黄色问题以标准题为主，嵌入检查点。
+- 蓝色问题以标准限时题为主，题量少而集中。
+- 连续正确后加入标准和变式。
+- 连续错误后降回基础和标准，避免过难打击积极性。
+
+## 待确认规则
+
+Codex 看不清题目、无法确认知识点或诊断置信度不高时，不要猜。
+
+- `confidence: high` 且 `confirmation_status: auto/confirmed` 才进入长期统计。
+- `confidence: medium/low` 必须进入 `uncertain_items`。
+- 待确认项会出现在当次记录中，但不会写入知识点长期趋势事件。
+- 空知识点、待确认缺失、学生卷疑似含答案、难度梯度不合格时，CLI 会输出 `ERROR:` 并返回非 0。
+
+如需改输出位置：
 
 ```bash
-python3 -m fish_study_wiki.study_protocol_cli homework samples/homework-plan.json \
+python3 -m fish_study_wiki.study_protocol_cli wrong samples/wrong-question-training.json \
   --output-root /tmp/fish-study-outputs \
   --vault-root /tmp/fish-study-vault
 ```
-
-## 低置信度和待定位
-
-Codex 看不清题目、无法确认知识点或知识点匹配置信度为 `low` 时，不要猜。处理规则：
-
-- 在 `matched_knowledge` 中写 `note: "待定位"`，并把对应题目写入 `uncertain_items`。
-- 低置信度匹配必须在 `uncertain_items` 中点名题目或知识点。
-- CLI 会运行质量检查；缺知识点、低置信度未标记、学生输出疑似含答案时，会在 stderr 输出 `ERROR:` 并返回非 0。
-- 失败后先修正 JSON，再重新运行命令。

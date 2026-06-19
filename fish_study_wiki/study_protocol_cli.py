@@ -6,48 +6,25 @@ import sys
 
 from fish_study_wiki.study_protocol_checks import (
     CheckRow,
-    check_homework_plan,
-    check_review_plan_source,
-    check_wrong_question_review,
+    check_weekly_review,
+    check_wrong_question_training,
 )
 from fish_study_wiki.study_protocol_models import (
-    load_homework_plan,
-    load_review_plan_source,
-    load_wrong_question_review,
+    load_weekly_review_source,
+    load_wrong_question_training,
 )
 from fish_study_wiki.study_protocol_render import (
-    render_homework_student_html,
-    render_wrong_question_student_html,
+    render_training_answer_html,
+    render_training_student_html,
+    render_weekly_answer_html,
+    render_weekly_worksheet_html,
 )
 from fish_study_wiki.study_protocol_writer import (
     DEFAULT_OUTPUT_ROOT,
     DEFAULT_VAULT_ROOT,
-    write_homework_outputs,
-    write_review_plan_outputs,
-    write_wrong_question_outputs,
+    write_training_outputs,
+    write_weekly_review_outputs,
 )
-
-
-def run_homework(
-    input_path: Path | str,
-    output_root: Path | str = DEFAULT_OUTPUT_ROOT,
-    vault_root: Path | str = DEFAULT_VAULT_ROOT,
-) -> int:
-    plan = load_homework_plan(input_path)
-    student_html = render_homework_student_html(plan)
-    printable_path = Path(output_root) / plan.date / "today-study-plan.html"
-    if not _print_check_errors(
-        check_homework_plan(plan, student_html, printable_path)
-    ):
-        return 1
-
-    result = write_homework_outputs(plan, output_root, vault_root)
-    _print_paths(
-        ("student_html", result.student_html),
-        ("parent_markdown", result.parent_markdown),
-        ("obsidian_note", result.obsidian_note),
-    )
-    return 0
 
 
 def run_wrong(
@@ -55,36 +32,60 @@ def run_wrong(
     output_root: Path | str = DEFAULT_OUTPUT_ROOT,
     vault_root: Path | str = DEFAULT_VAULT_ROOT,
 ) -> int:
-    review = load_wrong_question_review(input_path)
-    student_html = render_wrong_question_student_html(review)
-    printable_path = Path(output_root) / review.date / "wrong-question-review.html"
+    training = load_wrong_question_training(input_path)
+    student_html = render_training_student_html(training)
+    answer_html = render_training_answer_html(training)
+    printable_path = Path(output_root) / training.date / "wrong-question-training.html"
+    answer_path = Path(output_root) / training.date / "wrong-question-training-answers.html"
     if not _print_check_errors(
-        check_wrong_question_review(review, student_html, printable_path)
+        check_wrong_question_training(
+            training,
+            student_html,
+            answer_html,
+            printable_path,
+            answer_path,
+        )
     ):
         return 1
 
-    result = write_wrong_question_outputs(review, output_root, vault_root)
+    result = write_training_outputs(training, output_root, vault_root)
     _print_paths(
         ("student_html", result.student_html),
-        ("parent_markdown", result.parent_markdown),
+        ("answer_html", result.answer_html),
         ("obsidian_note", result.obsidian_note),
-        *tuple(("knowledge_note", path) for path in result.knowledge_notes),
+        *tuple(("event_note", path) for path in result.event_notes),
     )
     return 0
 
 
-def run_review_plan(
+def run_weekly_review(
     input_path: Path | str,
     output_root: Path | str = DEFAULT_OUTPUT_ROOT,
     vault_root: Path | str = DEFAULT_VAULT_ROOT,
 ) -> int:
-    source = load_review_plan_source(input_path)
-    if not _print_check_errors(check_review_plan_source(source)):
+    source = load_weekly_review_source(input_path)
+    student_html = render_weekly_worksheet_html(source)
+    answer_html = render_weekly_answer_html(source)
+    report_path = Path(output_root) / source.week_end / "weekly-review.md"
+    printable_path = Path(output_root) / source.week_end / "weekly-review.html"
+    answer_path = Path(output_root) / source.week_end / "weekly-review-answers.html"
+    if not _print_check_errors(
+        check_weekly_review(
+            source,
+            student_html,
+            answer_html,
+            report_path,
+            printable_path,
+            answer_path,
+        )
+    ):
         return 1
 
-    result = write_review_plan_outputs(source, output_root, vault_root)
+    result = write_weekly_review_outputs(source, output_root, vault_root)
     _print_paths(
-        ("markdown", result.markdown),
+        ("report_markdown", result.report_markdown),
+        ("student_html", result.student_html),
+        ("answer_html", result.answer_html),
         ("obsidian_note", result.obsidian_note),
     )
     return 0
@@ -95,12 +96,11 @@ def build_parser() -> argparse.ArgumentParser:
         prog="python3 -m fish_study_wiki.study_protocol_cli"
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
-    _add_study_command(subcommands, "homework", "generate today's study plan")
-    _add_study_command(subcommands, "wrong", "generate wrong-question review")
+    _add_study_command(subcommands, "wrong", "generate wrong-question training")
     _add_study_command(
         subcommands,
-        "review-plan",
-        "generate red/yellow/blue review plan",
+        "weekly-review",
+        "generate weekly wrong-question review",
     )
     return parser
 
@@ -108,12 +108,10 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        if args.command == "homework":
-            return run_homework(args.input_path, args.output_root, args.vault_root)
         if args.command == "wrong":
             return run_wrong(args.input_path, args.output_root, args.vault_root)
-        if args.command == "review-plan":
-            return run_review_plan(args.input_path, args.output_root, args.vault_root)
+        if args.command == "weekly-review":
+            return run_weekly_review(args.input_path, args.output_root, args.vault_root)
     except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

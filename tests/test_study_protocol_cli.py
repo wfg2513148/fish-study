@@ -10,57 +10,52 @@ from fish_study_wiki import study_protocol_cli
 
 
 class StudyProtocolCliTests(unittest.TestCase):
-    def test_protocol_subcommands_write_expected_files(self):
+    def test_wrong_command_writes_student_answer_and_obsidian_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            output_root = root / "outputs"
-            vault_root = root / "vault"
-
-            cases = (
-                (
-                    "homework",
-                    "samples/homework-plan.json",
-                    (
-                        output_root / "2026-06-19" / "today-study-plan.html",
-                        output_root / "2026-06-19" / "today-study-plan-parent.md",
-                        vault_root / "30-每日学习计划" / "2026-06-19.md",
-                    ),
-                ),
-                (
-                    "wrong",
-                    "samples/wrong-question-review.json",
-                    (
-                        output_root / "2026-06-19" / "wrong-question-review.html",
-                        output_root / "2026-06-19" / "wrong-question-review-parent.md",
-                        vault_root / "20-错题归因" / "2026-06-19.md",
-                    ),
-                ),
-                (
-                    "review-plan",
-                    "samples/review-plan-source.json",
-                    (
-                        output_root / "2026-06-19" / "review-plan.md",
-                        vault_root / "40-复习计划" / "2026-06-19.md",
-                    ),
-                ),
+            stdout, stderr, status = self._run_protocol(
+                "wrong",
+                "samples/wrong-question-training.json",
+                "--output-root",
+                str(root / "outputs"),
+                "--vault-root",
+                str(root / "vault"),
             )
 
-            for command, sample, expected_paths in cases:
-                with self.subTest(command=command):
-                    stdout, stderr, status = self._run_protocol(
-                        command,
-                        sample,
-                        "--output-root",
-                        str(output_root),
-                        "--vault-root",
-                        str(vault_root),
-                    )
+            expected = (
+                root / "outputs" / "2026-06-19" / "wrong-question-training.html",
+                root / "outputs" / "2026-06-19" / "wrong-question-training-answers.html",
+                root / "vault" / "20-错题归因" / "2026-06-19.md",
+            )
+            self.assertEqual(status, 0, stderr)
+            self.assertEqual(stderr, "")
+            for path in expected:
+                self.assertTrue(path.exists(), path)
+                self.assertIn(str(path), stdout)
 
-                    self.assertEqual(status, 0, stderr)
-                    self.assertEqual(stderr, "")
-                    for path in expected_paths:
-                        self.assertTrue(path.exists(), path)
-                        self.assertIn(str(path), stdout)
+    def test_weekly_review_command_writes_report_student_answer_and_obsidian_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            stdout, stderr, status = self._run_protocol(
+                "weekly-review",
+                "samples/weekly-review-source.json",
+                "--output-root",
+                str(root / "outputs"),
+                "--vault-root",
+                str(root / "vault"),
+            )
+
+            expected = (
+                root / "outputs" / "2026-06-21" / "weekly-review.md",
+                root / "outputs" / "2026-06-21" / "weekly-review.html",
+                root / "outputs" / "2026-06-21" / "weekly-review-answers.html",
+                root / "vault" / "40-复习计划" / "2026-06-21.md",
+            )
+            self.assertEqual(status, 0, stderr)
+            self.assertEqual(stderr, "")
+            for path in expected:
+                self.assertTrue(path.exists(), path)
+                self.assertIn(str(path), stdout)
 
     def test_main_cli_study_aliases_delegate_to_protocol_commands(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -70,19 +65,14 @@ class StudyProtocolCliTests(unittest.TestCase):
 
             cases = (
                 (
-                    "study-homework",
-                    "samples/homework-plan.json",
-                    output_root / "2026-06-19" / "today-study-plan.html",
-                ),
-                (
                     "study-wrong",
-                    "samples/wrong-question-review.json",
-                    output_root / "2026-06-19" / "wrong-question-review.html",
+                    "samples/wrong-question-training.json",
+                    output_root / "2026-06-19" / "wrong-question-training.html",
                 ),
                 (
-                    "study-review-plan",
-                    "samples/review-plan-source.json",
-                    output_root / "2026-06-19" / "review-plan.md",
+                    "study-weekly-review",
+                    "samples/weekly-review-source.json",
+                    output_root / "2026-06-21" / "weekly-review.md",
                 ),
             )
 
@@ -105,36 +95,38 @@ class StudyProtocolCliTests(unittest.TestCase):
                     self.assertTrue(expected_path.exists())
                     self.assertIn(str(expected_path), stdout.getvalue())
 
-    def test_quality_check_failure_returns_nonzero(self):
+    def test_removed_protocol_commands_return_argparse_error(self):
+        for command in ("homework", "review-plan"):
+            with self.subTest(command=command):
+                stderr = io.StringIO()
+                with contextlib.redirect_stderr(stderr):
+                    with self.assertRaises(SystemExit):
+                        study_protocol_cli.main([command, "unused.json"])
+
+                self.assertIn("invalid choice", stderr.getvalue())
+
+    def test_removed_main_aliases_return_argparse_error(self):
+        for command in ("study-homework", "study-review-plan"):
+            with self.subTest(command=command):
+                stderr = io.StringIO()
+                with contextlib.redirect_stderr(stderr):
+                    with self.assertRaises(SystemExit):
+                        cli.main([command, "unused.json"])
+
+                self.assertIn("invalid choice", stderr.getvalue())
+
+    def test_quality_check_failure_returns_nonzero_without_outputs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            bad_input = root / "bad-homework.json"
-            bad_input.write_text(
-                json.dumps(
-                    {
-                        "task_type": "homework_plan",
-                        "date": "2026-06-19",
-                        "items": [
-                            {
-                                "subject": "数学",
-                                "raw_text": "完成第1题",
-                                "book_or_source": "作业本",
-                                "page": "12",
-                                "question_range": "1",
-                                "deadline": "今晚",
-                                "matched_knowledge": [],
-                                "status": "matched",
-                            }
-                        ],
-                        "uncertain_items": [],
-                    },
-                    ensure_ascii=False,
-                ),
-                encoding="utf-8",
+            bad_input = root / "bad-training.json"
+            data = json.loads(
+                Path("samples/wrong-question-training.json").read_text(encoding="utf-8")
             )
+            data["clusters"][0]["training_questions"] = []
+            bad_input.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
             stdout, stderr, status = self._run_protocol(
-                "homework",
+                "wrong",
                 str(bad_input),
                 "--output-root",
                 str(root / "outputs"),
@@ -145,28 +137,21 @@ class StudyProtocolCliTests(unittest.TestCase):
             self.assertEqual(status, 1)
             self.assertEqual(stdout, "")
             self.assertIn("ERROR:", stderr)
-            self.assertIn("knowledge_link_or_pending", stderr)
+            self.assertIn("training_questions_present", stderr)
             self.assertFalse((root / "outputs" / "2026-06-19").exists())
 
     def test_invalid_date_cannot_escape_output_or_vault_root(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            bad_input = root / "bad-review-plan.json"
-            bad_input.write_text(
-                json.dumps(
-                    {
-                        "task_type": "review_plan_source",
-                        "date": "../escaped",
-                        "items": [],
-                        "uncertain_items": [],
-                    },
-                    ensure_ascii=False,
-                ),
-                encoding="utf-8",
+            bad_input = root / "bad-weekly.json"
+            data = json.loads(
+                Path("samples/weekly-review-source.json").read_text(encoding="utf-8")
             )
+            data["week_end"] = "../escaped"
+            bad_input.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
             stdout, stderr, status = self._run_protocol(
-                "review-plan",
+                "weekly-review",
                 str(bad_input),
                 "--output-root",
                 str(root / "outputs"),

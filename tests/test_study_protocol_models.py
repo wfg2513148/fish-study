@@ -28,7 +28,7 @@ class StudyProtocolModelTests(unittest.TestCase):
 
         self.assertEqual(source.task_type, "weekly_review")
         self.assertEqual(source.week_start, "2026-06-12")
-        self.assertEqual(source.week_end, "2026-06-18")
+        self.assertEqual(source.week_end, "2026-06-21")
         self.assertEqual(len(source.events), 4)
         self.assertEqual(source.results[0].difficulty, "basic")
         self.assertEqual(source.results[0].completion_status, "overtime")

@@ -132,12 +132,11 @@ def build_parser() -> argparse.ArgumentParser:
     subcommands.add_parser("inventory", help="rebuild source ZIP inventories")
     subcommands.add_parser("build", help="build Obsidian wiki indexes and notes")
     subcommands.add_parser("verify", help="write quality reports and run gates")
-    _add_study_alias(subcommands, "study-homework", "generate today's study plan")
-    _add_study_alias(subcommands, "study-wrong", "generate wrong-question review")
+    _add_study_alias(subcommands, "study-wrong", "generate wrong-question training")
     _add_study_alias(
         subcommands,
-        "study-review-plan",
-        "generate red/yellow/blue review plan",
+        "study-weekly-review",
+        "generate weekly wrong-question review",
     )
     return parser
 
@@ -150,12 +149,10 @@ def main(argv: list[str] | None = None) -> int:
         return run_build()
     if args.command == "verify":
         return run_verify()
-    if args.command == "study-homework":
-        return _run_study_alias(study_protocol_cli.run_homework, args)
     if args.command == "study-wrong":
         return _run_study_alias(study_protocol_cli.run_wrong, args)
-    if args.command == "study-review-plan":
-        return _run_study_alias(study_protocol_cli.run_review_plan, args)
+    if args.command == "study-weekly-review":
+        return _run_study_alias(study_protocol_cli.run_weekly_review, args)
     raise ValueError(f"unknown command: {args.command}")
 
 
