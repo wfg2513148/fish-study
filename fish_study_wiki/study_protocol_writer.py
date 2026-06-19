@@ -172,19 +172,19 @@ def _append_wrong_question_records(
     review: WrongQuestionReview,
     student_html: Path,
 ) -> set[Path]:
-    by_note: dict[KnowledgeMatch, list[WrongQuestionItem]] = {}
+    by_note: dict[Path, list[WrongQuestionItem]] = {}
     for item in review.items:
         for match in item.matched_knowledge:
             if match.is_pending:
                 continue
-            by_note.setdefault(match, []).append(item)
+            note_path = _knowledge_note_path(vault_root, match, item.subject)
+            by_note.setdefault(note_path, []).append(item)
 
     changed: set[Path] = set()
-    for match, items in by_note.items():
-        note_path = _knowledge_note_path(vault_root, match, items[0].subject)
+    for note_path, items in by_note.items():
         note_path.parent.mkdir(parents=True, exist_ok=True)
         if not note_path.exists():
-            note_path.write_text(f"# {match.note}\n\n## 错题记录\n", encoding="utf-8")
+            note_path.write_text(f"# {note_path.stem}\n\n## 错题记录\n", encoding="utf-8")
         current = note_path.read_text(encoding="utf-8")
         block = _knowledge_wrong_block(review.date, items, student_html)
         begin = _block_begin(review.date)

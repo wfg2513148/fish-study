@@ -137,6 +137,66 @@ class StudyProtocolWriterTests(unittest.TestCase):
             self.assertEqual(text.count("2026-06-19 错题记录"), 1)
             self.assertIn("复测状态：待复测", text)
 
+    def test_wrong_question_records_merge_same_note_with_different_match_metadata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            vault = root / "vault"
+            note_path = (
+                vault
+                / "10-教材Wiki"
+                / "七年级"
+                / "下册"
+                / "数学"
+                / "第1章 1.1 直线的相交.md"
+            )
+            note_path.parent.mkdir(parents=True)
+            note_path.write_text("# 第1章 1.1 直线的相交\n\n## 错题记录\n", encoding="utf-8")
+            review = WrongQuestionReview(
+                task_type="wrong_question_review",
+                date="2026-06-19",
+                items=(
+                    WrongQuestionItem(
+                        subject="数学",
+                        question_id="第1题",
+                        sticker_color="red",
+                        reason="不会",
+                        problem_type="证明",
+                        matched_knowledge=(knowledge(),),
+                        next_action="复习基础定义",
+                    ),
+                    WrongQuestionItem(
+                        subject="数学",
+                        question_id="第2题",
+                        sticker_color="yellow",
+                        reason="马虎",
+                        problem_type="计算",
+                        matched_knowledge=(
+                            KnowledgeMatch(
+                                grade="七年级",
+                                volume="下册",
+                                chapter="第1章",
+                                note="第1章 1.1 直线的相交",
+                                confidence="medium",
+                            ),
+                        ),
+                        next_action="检查符号",
+                    ),
+                ),
+                uncertain_items=(),
+            )
+
+            result = write_wrong_question_outputs(
+                review,
+                output_root=root / "outputs",
+                vault_root=vault,
+            )
+
+            text = note_path.read_text(encoding="utf-8")
+            self.assertEqual(result.knowledge_notes, (note_path,))
+            self.assertEqual(text.count("2026-06-19 错题记录"), 1)
+            self.assertIn("数学 第1题", text)
+            self.assertIn("数学 第2题", text)
+
 
 if __name__ == "__main__":
     unittest.main()
