@@ -10,4 +10,5 @@ outputs/
 # Local runtime/cache files.
 .cache/
 *.log
-
+__pycache__/
+*.py[cod]
