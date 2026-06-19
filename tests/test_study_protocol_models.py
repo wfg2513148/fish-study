@@ -4,83 +4,116 @@ import unittest
 from pathlib import Path
 
 from fish_study_wiki.study_protocol_models import (
-    load_homework_plan,
-    load_review_plan_source,
-    load_wrong_question_review,
+    load_weekly_review_source,
+    load_wrong_question_training,
 )
 
 
 class StudyProtocolModelTests(unittest.TestCase):
-    def test_sample_homework_plan_loads(self):
-        plan = load_homework_plan(Path("samples/homework-plan.json"))
+    def test_sample_wrong_question_training_loads(self):
+        training = load_wrong_question_training(
+            Path("samples/wrong-question-training.json")
+        )
 
-        self.assertEqual(plan.task_type, "homework_plan")
-        self.assertEqual(plan.date, "2026-06-19")
-        self.assertEqual(plan.items[0].matched_knowledge[0].confidence, "high")
+        self.assertEqual(training.task_type, "wrong_question_training")
+        self.assertEqual(training.date, "2026-06-19")
+        self.assertEqual(training.clusters[0].diagnosis.sticker_color, "red")
+        self.assertEqual(training.clusters[1].diagnosis.sticker_color, "yellow")
+        self.assertEqual(training.clusters[2].diagnosis.sticker_color, "blue")
+        self.assertEqual(training.clusters[0].training_questions[0].difficulty, "basic")
+        self.assertEqual(training.clusters[1].difficulty_mix, ("standard", "variant"))
 
-    def test_sample_wrong_question_review_loads_and_normalizes_sticker(self):
-        review = load_wrong_question_review(Path("samples/wrong-question-review.json"))
+    def test_sample_weekly_review_source_loads(self):
+        source = load_weekly_review_source(Path("samples/weekly-review-source.json"))
 
-        self.assertEqual(review.task_type, "wrong_question_review")
-        self.assertEqual(review.items[0].sticker_color, "red")
-        self.assertEqual(review.items[1].sticker_color, "yellow")
+        self.assertEqual(source.task_type, "weekly_review")
+        self.assertEqual(source.week_start, "2026-06-12")
+        self.assertEqual(source.week_end, "2026-06-18")
+        self.assertEqual(len(source.events), 4)
+        self.assertEqual(source.results[0].difficulty, "basic")
+        self.assertEqual(source.review_queue[0].status, "D+7 review")
 
-    def test_sample_review_plan_source_loads(self):
-        source = load_review_plan_source(Path("samples/review-plan-source.json"))
+    def test_invalid_task_type_fails(self):
+        data = _sample_training()
+        data["task_type"] = "homework_plan"
 
-        self.assertEqual(source.task_type, "review_plan_source")
-        self.assertEqual(source.items[1].sticker_color, "blue")
-
-    def test_unknown_task_type_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "bad.json"
-            path.write_text(
-                json.dumps({"task_type": "unknown", "items": []}),
-                encoding="utf-8",
-            )
-
-            with self.assertRaises(ValueError):
-                load_homework_plan(path)
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
 
     def test_invalid_date_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "bad-date.json"
-            path.write_text(
-                json.dumps(
+        data = _sample_training()
+        data["date"] = "../escaped"
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_invalid_difficulty_fails(self):
+        data = _sample_training()
+        data["clusters"][0]["training_questions"][0]["difficulty"] = "expert"
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_invalid_confirmation_status_fails(self):
+        data = _sample_training()
+        data["clusters"][0]["diagnosis"]["confirmation_status"] = "maybe"
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+
+def _sample_training():
+    return {
+        "task_type": "wrong_question_training",
+        "date": "2026-06-19",
+        "source_batch": "unit-test",
+        "clusters": [
+            {
+                "subject": "数学",
+                "problem_type": "计算",
+                "diagnosis": {
+                    "sticker_color": "red",
+                    "primary_reason": "不会",
+                    "secondary_reason": "概念缺失",
+                    "evidence": "不会使用平行线性质。",
+                    "confidence": "high",
+                    "confirmation_status": "confirmed",
+                },
+                "matched_knowledge": [
                     {
-                        "task_type": "homework_plan",
-                        "date": "../escaped",
-                        "items": [],
+                        "grade": "七年级",
+                        "volume": "下册",
+                        "chapter": "第1章",
+                        "note": "第1章 1.3 平行线的性质与判定",
+                        "confidence": "high",
                     }
-                ),
-                encoding="utf-8",
-            )
-
-            with self.assertRaises(ValueError):
-                load_homework_plan(path)
-
-    def test_unknown_sticker_color_fails(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "bad.json"
-            path.write_text(
-                json.dumps(
+                ],
+                "training_questions": [
                     {
-                        "task_type": "wrong_question_review",
-                        "date": "2026-06-19",
-                        "items": [
-                            {
-                                "question_id": "1",
-                                "sticker_color": "green",
-                                "matched_knowledge": [],
-                            }
-                        ],
+                        "prompt": "写出平行线的一个性质。",
+                        "difficulty": "basic",
+                        "target_reason": "概念缺失",
+                        "answer": "两直线平行，同位角相等。",
+                        "scoring_points": ["写出平行线条件", "写出角关系"],
+                        "mastery_signal": "能独立说出性质。",
                     }
-                ),
-                encoding="utf-8",
-            )
+                ],
+                "difficulty_mix": ["basic", "standard"],
+            }
+        ],
+        "uncertain_items": [],
+    }
 
-            with self.assertRaises(ValueError):
-                load_wrong_question_review(path)
+
+def _write_json(data):
+    temp_dir = tempfile.TemporaryDirectory()
+    path = Path(temp_dir.name) / "input.json"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    _TEMP_DIRS.append(temp_dir)
+    return path
+
+
+_TEMP_DIRS = []
 
 
 if __name__ == "__main__":
