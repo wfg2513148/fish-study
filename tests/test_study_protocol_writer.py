@@ -3,199 +3,125 @@ import unittest
 from pathlib import Path
 
 from fish_study_wiki.study_protocol_models import (
-    HomeworkItem,
-    HomeworkPlan,
-    KnowledgeMatch,
-    WrongQuestionItem,
-    WrongQuestionReview,
+    load_weekly_review_source,
+    load_wrong_question_training,
 )
 from fish_study_wiki.study_protocol_writer import (
-    write_homework_outputs,
-    write_wrong_question_outputs,
+    write_training_outputs,
+    write_weekly_review_outputs,
 )
 
 
-def knowledge(note: str = "第1章 1.1 直线的相交") -> KnowledgeMatch:
-    return KnowledgeMatch(
-        grade="七年级",
-        volume="下册",
-        chapter="第1章",
-        note=note,
-        confidence="high",
-    )
+ANSWER_MARKERS = ("答案", "参考答案", "解析", "解答")
 
 
-def homework_plan() -> HomeworkPlan:
-    return HomeworkPlan(
-        task_type="homework_plan",
-        date="2026-06-19",
-        items=(
-            HomeworkItem(
-                subject="数学",
-                raw_text="完成作业本第12页第1-3题",
-                book_or_source="作业本",
-                page="12",
-                question_range="1-3",
-                deadline="今晚",
-                matched_knowledge=(knowledge(),),
-                status="matched",
-            ),
-        ),
-        uncertain_items=("无",),
-    )
+def training_sample():
+    return load_wrong_question_training(Path("samples/wrong-question-training.json"))
 
 
-def wrong_review() -> WrongQuestionReview:
-    return WrongQuestionReview(
-        task_type="wrong_question_review",
-        date="2026-06-19",
-        items=(
-            WrongQuestionItem(
-                subject="数学",
-                question_id="第12题",
-                sticker_color="yellow",
-                reason="马虎",
-                problem_type="计算",
-                matched_knowledge=(knowledge(),),
-                next_action="整理审题和符号检查清单",
-            ),
-        ),
-        uncertain_items=(),
-    )
+def weekly_sample():
+    return load_weekly_review_source(Path("samples/weekly-review-source.json"))
 
 
 class StudyProtocolWriterTests(unittest.TestCase):
-    def test_write_homework_outputs_to_dated_output_and_daily_note(self):
+    def test_training_outputs_write_student_answer_and_obsidian_note(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            result = write_homework_outputs(
-                homework_plan(),
+            result = write_training_outputs(
+                training_sample(),
                 output_root=root / "outputs",
                 vault_root=root / "vault",
             )
 
-            self.assertEqual(result.student_html.name, "today-study-plan.html")
-            self.assertEqual(result.parent_markdown.name, "today-study-plan-parent.md")
+            self.assertEqual(result.student_html.name, "wrong-question-training.html")
+            self.assertEqual(result.answer_html.name, "wrong-question-training-answers.html")
             self.assertEqual(result.student_html.parent.name, "2026-06-19")
-            self.assertTrue(result.student_html.exists())
-            self.assertTrue(result.parent_markdown.exists())
-            self.assertEqual(
-                result.obsidian_note,
-                root / "vault" / "30-每日学习计划" / "2026-06-19.md",
-            )
-            self.assertIn("每日学习计划", result.obsidian_note.read_text(encoding="utf-8"))
-            self.assertIn(str(result.student_html), result.obsidian_note.read_text(encoding="utf-8"))
-
-    def test_write_wrong_question_outputs_and_wrong_note(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            result = write_wrong_question_outputs(
-                wrong_review(),
-                output_root=root / "outputs",
-                vault_root=root / "vault",
-            )
-
-            self.assertEqual(result.student_html.name, "wrong-question-review.html")
-            self.assertEqual(result.parent_markdown.name, "wrong-question-review-parent.md")
             self.assertEqual(
                 result.obsidian_note,
                 root / "vault" / "20-错题归因" / "2026-06-19.md",
             )
-            text = result.obsidian_note.read_text(encoding="utf-8")
-            self.assertIn("错题归因", text)
-            self.assertIn("第12题", text)
-            self.assertIn("下次复测：2026-06-22", text)
+            self.assertTrue(result.student_html.exists())
+            self.assertTrue(result.answer_html.exists())
+            self.assertTrue(result.obsidian_note.exists())
+            self.assertIn("批改答案页", result.obsidian_note.read_text(encoding="utf-8"))
 
-    def test_wrong_question_records_append_to_matched_knowledge_note_once(self):
+    def test_training_student_file_has_no_answer_markers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = write_training_outputs(
+                training_sample(),
+                output_root=root / "outputs",
+                vault_root=root / "vault",
+            )
+
+            student_text = result.student_html.read_text(encoding="utf-8")
+            answer_text = result.answer_html.read_text(encoding="utf-8")
+            for marker in ANSWER_MARKERS:
+                self.assertNotIn(marker, student_text)
+            self.assertIn("答案", answer_text)
+
+    def test_training_appends_event_blocks_to_knowledge_notes_once(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             vault = root / "vault"
-            note_path = (
-                vault
-                / "10-教材Wiki"
-                / "七年级"
-                / "下册"
-                / "数学"
-                / "第1章 1.1 直线的相交.md"
-            )
-            note_path.parent.mkdir(parents=True)
-            note_path.write_text("# 第1章 1.1 直线的相交\n\n## 错题记录\n", encoding="utf-8")
-
-            first = write_wrong_question_outputs(
-                wrong_review(),
+            result = write_training_outputs(
+                training_sample(),
                 output_root=root / "outputs",
                 vault_root=vault,
             )
-            write_wrong_question_outputs(
-                wrong_review(),
+            second = write_training_outputs(
+                training_sample(),
                 output_root=root / "outputs",
                 vault_root=vault,
             )
 
-            text = note_path.read_text(encoding="utf-8")
-            self.assertEqual(first.knowledge_notes, (note_path,))
-            self.assertEqual(text.count("2026-06-19 错题记录"), 1)
-            self.assertIn("复测状态：待复测", text)
+            self.assertEqual(result.event_notes, second.event_notes)
+            self.assertEqual(len(result.event_notes), 2)
+            for note_path in result.event_notes:
+                text = note_path.read_text(encoding="utf-8")
+                self.assertEqual(text.count("2026-06-19 错题分析事件"), 1)
+                self.assertIn("来源批次：2026-06-19-evening-wrong-questions", text)
 
-    def test_wrong_question_records_merge_same_note_with_different_match_metadata(self):
+    def test_pending_training_cluster_does_not_append_long_term_event(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            vault = root / "vault"
-            note_path = (
-                vault
-                / "10-教材Wiki"
-                / "七年级"
-                / "下册"
-                / "数学"
-                / "第1章 1.1 直线的相交.md"
-            )
-            note_path.parent.mkdir(parents=True)
-            note_path.write_text("# 第1章 1.1 直线的相交\n\n## 错题记录\n", encoding="utf-8")
-            review = WrongQuestionReview(
-                task_type="wrong_question_review",
-                date="2026-06-19",
-                items=(
-                    WrongQuestionItem(
-                        subject="数学",
-                        question_id="第1题",
-                        sticker_color="red",
-                        reason="不会",
-                        problem_type="证明",
-                        matched_knowledge=(knowledge(),),
-                        next_action="复习基础定义",
-                    ),
-                    WrongQuestionItem(
-                        subject="数学",
-                        question_id="第2题",
-                        sticker_color="yellow",
-                        reason="马虎",
-                        problem_type="计算",
-                        matched_knowledge=(
-                            KnowledgeMatch(
-                                grade="七年级",
-                                volume="下册",
-                                chapter="第1章",
-                                note="第1章 1.1 直线的相交",
-                                confidence="medium",
-                            ),
-                        ),
-                        next_action="检查符号",
-                    ),
-                ),
-                uncertain_items=(),
-            )
-
-            result = write_wrong_question_outputs(
-                review,
+            result = write_training_outputs(
+                training_sample(),
                 output_root=root / "outputs",
-                vault_root=vault,
+                vault_root=root / "vault",
             )
 
-            text = note_path.read_text(encoding="utf-8")
-            self.assertEqual(result.knowledge_notes, (note_path,))
-            self.assertEqual(text.count("2026-06-19 错题记录"), 1)
-            self.assertIn("数学 第1题", text)
-            self.assertIn("数学 第2题", text)
+            event_text = "\n".join(
+                path.read_text(encoding="utf-8") for path in result.event_notes
+            )
+            self.assertNotIn("审题漏条件", event_text)
+            self.assertIn(
+                "数学 角关系计算 审题漏条件 待确认",
+                result.obsidian_note.read_text(encoding="utf-8"),
+            )
+
+    def test_weekly_review_outputs_write_report_student_answer_and_obsidian_note(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = write_weekly_review_outputs(
+                weekly_sample(),
+                output_root=root / "outputs",
+                vault_root=root / "vault",
+            )
+
+            self.assertEqual(result.report_markdown.name, "weekly-review.md")
+            self.assertEqual(result.student_html.name, "weekly-review.html")
+            self.assertEqual(result.answer_html.name, "weekly-review-answers.html")
+            self.assertEqual(result.report_markdown.parent.name, "2026-06-18")
+            self.assertEqual(
+                result.obsidian_note,
+                root / "vault" / "40-复习计划" / "2026-06-18.md",
+            )
+            self.assertIn("难度是否合适", result.report_markdown.read_text(encoding="utf-8"))
+            self.assertIn("错题周复盘", result.obsidian_note.read_text(encoding="utf-8"))
+            for marker in ANSWER_MARKERS:
+                self.assertNotIn(marker, result.student_html.read_text(encoding="utf-8"))
+            self.assertIn("答案", result.answer_html.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
