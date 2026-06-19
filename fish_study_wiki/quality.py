@@ -39,6 +39,20 @@ def load_matrix(path: Path) -> list[dict[str, str]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def matrix_keys(matrix: list[dict[str, str]]) -> set[str]:
+    return {f"{row['grade']}/{row['volume']}/{row['subject']}" for row in matrix}
+
+
+def out_of_matrix_available_sources(
+    sources: list[SourceRecord], valid_keys: set[str]
+) -> list[SourceRecord]:
+    return [
+        source
+        for source in sources
+        if source.status == "available" and source.key not in valid_keys
+    ]
+
+
 def validate_available_source(source: SourceRecord) -> Path:
     if source.status != "available":
         raise ValueError(f"source {source.source_id} is not marked available")
@@ -85,7 +99,14 @@ def _index_exists(vault: Path, grade: str, volume: str, subject: str) -> bool:
     return path.exists()
 
 
-def _row_status(sources: list[SourceRecord], topic_count: int, index_exists: bool) -> str:
+def _row_status(
+    sources: list[SourceRecord],
+    topic_count: int,
+    index_exists: bool,
+    validation_failed: bool,
+) -> str:
+    if validation_failed:
+        return "source_error"
     if not sources:
         return "missing_source"
     if any(source.status == "available" for source in sources):
@@ -103,10 +124,18 @@ def build_quality_report(
     vault: Path,
 ) -> QualityReport:
     matrix = load_matrix(matrix_path)
+    valid_keys = matrix_keys(matrix)
     sources = load_sources(ledger_path)
     mapped = _source_map(sources)
     errors: list[str] = []
+    failed_keys: set[str] = set()
     rows: list[QualityRow] = []
+
+    for source in out_of_matrix_available_sources(sources, valid_keys):
+        errors.append(
+            f"available source {source.source_id} key {source.key} "
+            "is not in subject matrix"
+        )
 
     for source in sources:
         if source.status != "available":
@@ -115,6 +144,7 @@ def build_quality_report(
             validate_available_source(source)
         except (FileNotFoundError, ValueError) as exc:
             errors.append(str(exc))
+            failed_keys.add(source.key)
 
     for row in matrix:
         grade = row["grade"]
@@ -124,7 +154,7 @@ def build_quality_report(
         row_sources = mapped.get(key, [])
         count = _topic_count(vault, grade, volume, subject)
         has_index = _index_exists(vault, grade, volume, subject)
-        status = _row_status(row_sources, count, has_index)
+        status = _row_status(row_sources, count, has_index, key in failed_keys)
         if row_sources and status == "missing_vault_index":
             errors.append(f"{key} has available source but no vault index")
         rows.append(

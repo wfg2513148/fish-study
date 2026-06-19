@@ -86,6 +86,70 @@ class QualityTests(unittest.TestCase):
             text,
         )
 
+    def test_out_of_matrix_available_source_fails_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix_path = root / "matrix.json"
+            ledger_path = root / "ledger.json"
+            vault = root / "vault"
+            matrix_path.write_text(
+                json.dumps(
+                    [{"grade": "七年级", "volume": "下册", "subject": "数学"}],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps([source_row(subject="物理")], ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            with patch("fish_study_wiki.quality.validate_available_source"):
+                report = build_quality_report(matrix_path, ledger_path, vault)
+
+        self.assertFalse(report.passed)
+        self.assertIn(
+            "available source demo key 七年级/下册/物理 is not in subject matrix",
+            report.errors,
+        )
+
+    def test_validation_failed_source_row_is_not_verified(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix_path = root / "matrix.json"
+            ledger_path = root / "ledger.json"
+            vault = root / "vault"
+            matrix_path.write_text(
+                json.dumps(
+                    [{"grade": "七年级", "volume": "下册", "subject": "数学"}],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps([source_row()], ensure_ascii=False),
+                encoding="utf-8",
+            )
+            subject_dir = vault / "10-教材Wiki" / "七年级" / "下册" / "数学"
+            subject_dir.mkdir(parents=True)
+            (subject_dir / "00-数学七年级下册索引.md").write_text(
+                "index", encoding="utf-8"
+            )
+            (subject_dir / "专题1.md").write_text("note", encoding="utf-8")
+
+            with patch(
+                "fish_study_wiki.quality.validate_available_source",
+                side_effect=ValueError("available source demo sha256 mismatch"),
+            ):
+                report = build_quality_report(matrix_path, ledger_path, vault)
+
+        text = render_quality_report(report)
+
+        self.assertFalse(report.passed)
+        self.assertEqual(report.rows[0].status, "source_error")
+        self.assertIn("- Verified rows: 0", text)
+        self.assertIn("| 七年级 | 下册 | 数学 | source_error | demo | 1 | yes |", text)
+
     def test_write_quality_reports_writes_repo_and_vault_copies(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

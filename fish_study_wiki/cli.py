@@ -11,6 +11,9 @@ from fish_study_wiki.models import SourceRecord
 from fish_study_wiki.pptx_text import extract_pptx_text
 from fish_study_wiki.quality import (
     build_quality_report,
+    load_matrix,
+    matrix_keys,
+    out_of_matrix_available_sources,
     validate_available_source,
     write_quality_reports,
 )
@@ -32,19 +35,29 @@ VAULT_QUALITY_PATH = settings.VAULT_ROOT / "00-入口" / "wiki-quality.md"
 
 def available_sources_with_paths(
     ledger_path: Path = LEDGER_PATH,
+    matrix_path: Path = MATRIX_PATH,
 ) -> list[tuple[SourceRecord, Path]]:
     sources = [
         source for source in load_sources(ledger_path) if source.status == "available"
     ]
+    valid_keys = matrix_keys(load_matrix(matrix_path))
+    out_of_matrix = out_of_matrix_available_sources(sources, valid_keys)
+    if out_of_matrix:
+        source = out_of_matrix[0]
+        raise ValueError(
+            f"available source {source.source_id} key {source.key} "
+            "is not in subject matrix"
+        )
     return [(source, validate_available_source(source)) for source in sources]
 
 
 def source_topics(
     vault: Path = settings.VAULT_ROOT,
     ledger_path: Path = LEDGER_PATH,
+    matrix_path: Path = MATRIX_PATH,
 ) -> dict[tuple[str, str, str], tuple[str, list[str]]]:
     grouped: dict[tuple[str, str, str], tuple[str, list[str]]] = {}
-    for source, zip_path in available_sources_with_paths(ledger_path):
+    for source, zip_path in available_sources_with_paths(ledger_path, matrix_path):
         key = (source.grade, source.volume, source.subject)
         version, links = grouped.setdefault(key, (source.version, []))
         with zipfile.ZipFile(zip_path) as archive:
