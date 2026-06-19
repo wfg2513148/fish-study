@@ -1,161 +1,62 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import re
+import io
+import sys
 from pathlib import Path
+import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INV_DIR = ROOT / "sources" / "inventory"
-VAULT = Path("/Users/kwang/Downloads/obsidian/fish-study")
+sys.path.insert(0, str(ROOT))
 
-SOURCE_MAP = {
-    "5star-math-zjjy-g7b-2026spring": ("数学", "七年级", "下册", "浙教版", "5星学霸课件"),
-    "5star-science-zjjy-g7b-2026spring": ("科学", "七年级", "下册", "浙教版", "5星学霸课件"),
-    "5star-english-pep-g7b-2026spring": ("英语", "七年级", "下册", "人教版", "5星学霸课件"),
-}
-
-SUBJECTS = ["语文", "数学", "英语", "科学", "地理", "中国历史", "道德与法治"]
-VOLUMES = [
-    ("七年级", "上册"),
-    ("七年级", "下册"),
-    ("八年级", "上册"),
-    ("八年级", "下册"),
-]
+from fish_study_wiki import settings
+from fish_study_wiki.pptx_text import extract_pptx_text
+from fish_study_wiki.source_ledger import load_sources
+from fish_study_wiki.topic_builder import topic_from_source_file
+from fish_study_wiki.vault_writer import topic_link, write_subject_index, write_topic_note
+from fish_study_wiki.zip_inventory import decode_zip_name
 
 
-def safe_name(name: str) -> str:
-    name = re.sub(r"[\\/:*?\"<>|]", "-", name)
-    name = re.sub(r"\s+", " ", name).strip()
-    return name[:120] or "未命名"
-
-
-def files_from_inventory(source_id: str) -> list[str]:
-    path = INV_DIR / f"{source_id}.files.md"
-    if not path.exists():
-        return []
-
-    files: list[str] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.startswith("| ") or line.startswith("| File ") or line.startswith("|---"):
+def source_topics() -> dict[tuple[str, str, str], tuple[str, list[str]]]:
+    grouped: dict[tuple[str, str, str], tuple[str, list[str]]] = {}
+    ledger_path = ROOT / "data" / "sources" / "source-ledger.json"
+    for source in load_sources(ledger_path):
+        if not source.is_available:
             continue
-        parts = line.strip().strip("|").rsplit("|", 1)
-        if len(parts) != 2:
+        zip_path = Path(source.local_path)
+        if not zip_path.exists():
             continue
-        files.append(parts[0].strip().replace("\\|", "|"))
-    return files
+
+        key = (source.grade, source.volume, source.subject)
+        version, links = grouped.setdefault(key, (source.version, []))
+        with zipfile.ZipFile(zip_path) as archive:
+            for info in archive.infolist():
+                if info.is_dir():
+                    continue
+                source_file = decode_zip_name(info.filename)
+                if not source_file.lower().endswith(".pptx"):
+                    continue
+                extracted_text = extract_pptx_text(io.BytesIO(archive.read(info)))
+                note = topic_from_source_file(source, source_file, extracted_text)
+                write_topic_note(settings.VAULT_ROOT, note)
+                links.append(topic_link(note))
+        grouped[key] = (version, links)
+    return grouped
 
 
-def write_if_missing(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if not path.exists():
-        path.write_text(content, encoding="utf-8")
-
-
-def make_subject_indexes() -> None:
-    for grade, volume in VOLUMES:
-        for subject in SUBJECTS:
-            folder = VAULT / "10-教材Wiki" / grade / volume / subject
-            index = folder / f"00-{subject}{grade}{volume}索引.md"
-            write_if_missing(
-                index,
-                f"""# {subject}{grade}{volume}索引
-
-## 教材版本
-
-待确认或待补齐。
-
-## 知识点
-
-待从教材目录、作业清单、错题和本地资料逐步补齐。
-
-## 关联
-
-- [[教材版本索引]]
-
-""",
-            )
-
-
-def make_courseware_notes() -> None:
-    for source_id, (subject, grade, volume, version, source_type) in SOURCE_MAP.items():
-        files = files_from_inventory(source_id)
-        folder = VAULT / "10-教材Wiki" / grade / volume / subject
-        index_path = folder / f"00-{subject}{grade}{volume}索引.md"
-        links = []
-        if index_path.exists():
-            current = index_path.read_text(encoding="utf-8")
-            current = current.replace(
-                "待确认或待补齐。",
-                f"{version}（本地课件来源：{source_type}；最终以孩子纸质教材和官方目录为准。）",
-                1,
-            )
-            index_path.write_text(current, encoding="utf-8")
-
-        for file_name in files:
-            title = Path(file_name).stem
-            note_name = safe_name(title)
-            note_path = folder / f"{note_name}.md"
-            links.append(f"- [[{note_name}]]")
-            write_if_missing(
-                note_path,
-                f"""---
-type: source-index
-subject: {subject}
-grade: {grade}
-volume: {volume}
-version: {version}
-source: {source_id}
-source_type: {source_type}
-confidence: medium
----
-
-# {note_name}
-
-## 定位
-
-- 学科：{subject}
-- 年级：{grade}
-- 册别：{volume}
-- 版本：{version}
-- 来源文件：`{file_name}`
-
-## 知识点摘要
-
-待从课件内容、教材目录和孩子错题中补齐。
-
-## 常见题型
-
-待补齐。
-
-## 易错点
-
-待补齐。
-
-## 关联
-
-- [[00-{subject}{grade}{volume}索引]]
-- [[教材版本索引]]
-
-""",
-            )
-
-        if links:
-            current = index_path.read_text(encoding="utf-8") if index_path.exists() else ""
-            generated = "\n".join(links)
-            marker = "## 本地课件索引"
-            if marker not in current:
-                index_path.write_text(
-                    current.rstrip()
-                    + f"\n\n{marker}\n\n来源：`{source_id}`\n\n{generated}\n",
-                    encoding="utf-8",
-                )
+def make_subject_indexes(grouped: dict[tuple[str, str, str], tuple[str, list[str]]]) -> None:
+    for grade in settings.GRADES:
+        for volume in settings.VOLUMES:
+            for subject in settings.SUBJECTS:
+                version, links = grouped.get((grade, volume, subject), ("待确认或待补齐。", []))
+                write_subject_index(settings.VAULT_ROOT, grade, volume, subject, version, links)
 
 
 def main() -> None:
-    make_subject_indexes()
-    make_courseware_notes()
-    print(f"Built vault indexes under {VAULT}")
+    grouped = source_topics()
+    make_subject_indexes(grouped)
+    print(f"Built vault indexes under {settings.VAULT_ROOT}")
 
 
 if __name__ == "__main__":
