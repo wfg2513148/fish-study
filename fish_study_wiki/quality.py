@@ -53,6 +53,12 @@ def out_of_matrix_available_sources(
     ]
 
 
+def out_of_matrix_sources(
+    sources: list[SourceRecord], valid_keys: set[str]
+) -> list[SourceRecord]:
+    return [source for source in sources if source.key not in valid_keys]
+
+
 def validate_available_source(source: SourceRecord) -> Path:
     if source.status != "available":
         raise ValueError(f"source {source.source_id} is not marked available")
@@ -131,10 +137,9 @@ def build_quality_report(
     failed_keys: set[str] = set()
     rows: list[QualityRow] = []
 
-    for source in out_of_matrix_available_sources(sources, valid_keys):
+    for source in out_of_matrix_sources(sources, valid_keys):
         errors.append(
-            f"available source {source.source_id} key {source.key} "
-            "is not in subject matrix"
+            f"source {source.source_id} key {source.key} is not in subject matrix"
         )
 
     for source in sources:

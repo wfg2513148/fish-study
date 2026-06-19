@@ -12,15 +12,19 @@ from fish_study_wiki.quality import (
 )
 
 
-def source_row(subject: str = "数学") -> dict[str, str]:
+def source_row(
+    subject: str = "数学",
+    grade: str = "七年级",
+    status: str = "available",
+) -> dict[str, str]:
     return {
         "source_id": "demo",
         "subject": subject,
-        "grade": "七年级",
+        "grade": grade,
         "volume": "下册",
         "version": "浙教版",
         "source_type": "courseware",
-        "status": "available",
+        "status": status,
         "local_path": "/tmp/demo.zip",
         "sha256": "abc",
     }
@@ -109,7 +113,42 @@ class QualityTests(unittest.TestCase):
 
         self.assertFalse(report.passed)
         self.assertIn(
-            "available source demo key 七年级/下册/物理 is not in subject matrix",
+            "source demo key 七年级/下册/物理 is not in subject matrix",
+            report.errors,
+        )
+
+    def test_out_of_matrix_non_available_source_fails_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix_path = root / "matrix.json"
+            ledger_path = root / "ledger.json"
+            vault = root / "vault"
+            matrix_path.write_text(
+                json.dumps(
+                    [{"grade": "七年级", "volume": "下册", "subject": "数学"}],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps(
+                    [
+                        source_row(
+                            subject="不存在科目",
+                            grade="九年级",
+                            status="missing_source",
+                        )
+                    ],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            report = build_quality_report(matrix_path, ledger_path, vault)
+
+        self.assertFalse(report.passed)
+        self.assertIn(
+            "source demo key 九年级/下册/不存在科目 is not in subject matrix",
             report.errors,
         )
 
