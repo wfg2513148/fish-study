@@ -8,14 +8,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from fish_study_wiki.zip_inventory import rebuild_inventories
-
-RAW_DIR = ROOT / "sources" / "raw"
-INV_DIR = ROOT / "sources" / "inventory"
+from fish_study_wiki.cli import main as cli_main
 
 
 def main() -> None:
-    rebuild_inventories(RAW_DIR, INV_DIR)
+    raise SystemExit(cli_main(["inventory"]))
 
 
 if __name__ == "__main__":
