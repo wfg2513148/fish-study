@@ -31,6 +31,8 @@ class StudyProtocolModelTests(unittest.TestCase):
         self.assertEqual(source.week_end, "2026-06-18")
         self.assertEqual(len(source.events), 4)
         self.assertEqual(source.results[0].difficulty, "basic")
+        self.assertEqual(source.results[0].completion_status, "overtime")
+        self.assertEqual(source.results[1].next_difficulty, "variant")
         self.assertEqual(source.review_queue[0].status, "D+7 review")
 
     def test_invalid_task_type_fails(self):
@@ -61,6 +63,71 @@ class StudyProtocolModelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             load_wrong_question_training(_write_json(data))
 
+    def test_medium_confidence_auto_confirmation_fails(self):
+        data = _sample_training()
+        data["clusters"][0]["diagnosis"]["confidence"] = "medium"
+        data["clusters"][0]["diagnosis"]["confirmation_status"] = "auto"
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_secondary_reason_must_match_sticker_color(self):
+        data = _sample_training()
+        data["clusters"][0]["diagnosis"]["secondary_reason"] = "计算错误"
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_nested_non_object_fails_with_value_error(self):
+        data = _sample_training()
+        data["clusters"][0]["diagnosis"] = None
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_nested_non_list_fails_with_value_error(self):
+        data = _sample_training()
+        data["clusters"] = None
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_invalid_week_range_fails(self):
+        data = _sample_weekly()
+        data["week_start"] = "2026-06-20"
+        data["week_end"] = "2026-06-19"
+
+        with self.assertRaises(ValueError):
+            load_weekly_review_source(_write_json(data))
+
+    def test_invalid_correct_rate_fails(self):
+        data = _sample_weekly()
+        data["results"][0]["correct_rate"] = 1.5
+
+        with self.assertRaises(ValueError):
+            load_weekly_review_source(_write_json(data))
+
+    def test_negative_elapsed_minutes_fails(self):
+        data = _sample_weekly()
+        data["results"][0]["elapsed_minutes"] = -1
+
+        with self.assertRaises(ValueError):
+            load_weekly_review_source(_write_json(data))
+
+    def test_null_correct_rate_fails_with_value_error(self):
+        data = _sample_weekly()
+        data["results"][0]["correct_rate"] = None
+
+        with self.assertRaises(ValueError):
+            load_weekly_review_source(_write_json(data))
+
+    def test_null_elapsed_minutes_fails_with_value_error(self):
+        data = _sample_weekly()
+        data["results"][0]["elapsed_minutes"] = None
+
+        with self.assertRaises(ValueError):
+            load_weekly_review_source(_write_json(data))
+
 
 def _sample_training():
     return {
@@ -74,7 +141,7 @@ def _sample_training():
                 "diagnosis": {
                     "sticker_color": "red",
                     "primary_reason": "不会",
-                    "secondary_reason": "概念缺失",
+                    "secondary_reason": "概念不清",
                     "evidence": "不会使用平行线性质。",
                     "confidence": "high",
                     "confirmation_status": "confirmed",
@@ -92,7 +159,7 @@ def _sample_training():
                     {
                         "prompt": "写出平行线的一个性质。",
                         "difficulty": "basic",
-                        "target_reason": "概念缺失",
+                        "target_reason": "概念不清",
                         "answer": "两直线平行，同位角相等。",
                         "scoring_points": ["写出平行线条件", "写出角关系"],
                         "mastery_signal": "能独立说出性质。",
@@ -103,6 +170,10 @@ def _sample_training():
         ],
         "uncertain_items": [],
     }
+
+
+def _sample_weekly():
+    return json.loads(Path("samples/weekly-review-source.json").read_text(encoding="utf-8"))
 
 
 def _write_json(data):

@@ -11,6 +11,23 @@ STICKER_COLORS = {"red", "yellow", "blue"}
 CONFIDENCE_VALUES = {"high", "medium", "low"}
 CONFIRMATION_STATUSES = {"auto", "needs_confirmation", "confirmed", "excluded"}
 DIFFICULTY_LEVELS = {"basic", "standard", "variant", "challenge"}
+COMPLETION_STATUSES = {"completed", "overtime", "unfinished"}
+PRIMARY_REASONS_BY_COLOR = {
+    "red": "不会",
+    "yellow": "马虎",
+    "blue": "时间不够",
+}
+SECONDARY_REASONS_BY_COLOR = {
+    "red": {"概念不清", "方法不会", "条件转化失败", "迁移失败"},
+    "yellow": {"审题漏条件", "计算错误", "单位/符号错误", "步骤书写问题"},
+    "blue": {
+        "读题慢",
+        "路径选择慢",
+        "计算耗时",
+        "卡在第一步",
+        "时间分配不当",
+    },
+}
 
 
 @dataclass(frozen=True)
@@ -122,6 +139,13 @@ class TrainingResult:
     difficulty: str
     correct_rate: float
     elapsed_minutes: int
+    target_minutes: int
+    completion_status: str
+    major_error: str
+    next_difficulty: str
+    review_window: str
+    due_date: str
+    review_result: str
     status: str
 
 
@@ -142,7 +166,9 @@ def load_homework_plan(path: Path | str) -> HomeworkPlan:
     return HomeworkPlan(
         task_type=data["task_type"],
         date=_iso_date(data.get("date", "")),
-        items=tuple(_homework_item(item) for item in data.get("items", [])),
+        items=tuple(
+            _homework_item(item) for item in _list(data.get("items", []), "items")
+        ),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
 
@@ -153,7 +179,10 @@ def load_wrong_question_review(path: Path | str) -> WrongQuestionReview:
     return WrongQuestionReview(
         task_type=data["task_type"],
         date=_iso_date(data.get("date", "")),
-        items=tuple(_wrong_question_item(item) for item in data.get("items", [])),
+        items=tuple(
+            _wrong_question_item(item)
+            for item in _list(data.get("items", []), "items")
+        ),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
 
@@ -164,7 +193,10 @@ def load_review_plan_source(path: Path | str) -> ReviewPlanSource:
     return ReviewPlanSource(
         task_type=data["task_type"],
         date=_iso_date(data.get("date", "")),
-        items=tuple(_wrong_question_item(item) for item in data.get("items", [])),
+        items=tuple(
+            _wrong_question_item(item)
+            for item in _list(data.get("items", []), "items")
+        ),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
 
@@ -176,7 +208,10 @@ def load_wrong_question_training(path: Path | str) -> WrongQuestionTraining:
         task_type=data["task_type"],
         date=_iso_date(data.get("date", "")),
         source_batch=str(data.get("source_batch", "")),
-        clusters=tuple(_analysis_cluster(item) for item in data.get("clusters", [])),
+        clusters=tuple(
+            _analysis_cluster(item)
+            for item in _list(data.get("clusters", []), "clusters")
+        ),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
 
@@ -184,14 +219,25 @@ def load_wrong_question_training(path: Path | str) -> WrongQuestionTraining:
 def load_weekly_review_source(path: Path | str) -> WeeklyReviewSource:
     data = _load_json(path)
     _require_task_type(data, "weekly_review")
+    week_start = _iso_date(data.get("week_start", ""))
+    week_end = _iso_date(data.get("week_end", ""))
+    if date.fromisoformat(week_start) > date.fromisoformat(week_end):
+        raise ValueError("week_start must be before or equal to week_end")
     return WeeklyReviewSource(
         task_type=data["task_type"],
-        week_start=_iso_date(data.get("week_start", "")),
-        week_end=_iso_date(data.get("week_end", "")),
-        events=tuple(_analysis_cluster(item) for item in data.get("events", [])),
-        results=tuple(_training_result(item) for item in data.get("results", [])),
+        week_start=week_start,
+        week_end=week_end,
+        events=tuple(
+            _analysis_cluster(item)
+            for item in _list(data.get("events", []), "events")
+        ),
+        results=tuple(
+            _training_result(item)
+            for item in _list(data.get("results", []), "results")
+        ),
         review_queue=tuple(
-            _training_result(item) for item in data.get("review_queue", [])
+            _training_result(item)
+            for item in _list(data.get("review_queue", []), "review_queue")
         ),
         uncertain_items=_string_tuple(data.get("uncertain_items", [])),
     )
@@ -229,6 +275,7 @@ def _iso_date(value: Any) -> str:
 
 
 def _knowledge_match(data: dict[str, Any]) -> KnowledgeMatch:
+    data = _object(data, "knowledge match")
     return KnowledgeMatch(
         grade=str(data.get("grade", "")),
         volume=str(data.get("volume", "")),
@@ -243,6 +290,7 @@ def _knowledge_match(data: dict[str, Any]) -> KnowledgeMatch:
 
 
 def _homework_item(data: dict[str, Any]) -> HomeworkItem:
+    data = _object(data, "homework item")
     return HomeworkItem(
         subject=str(data.get("subject", "")),
         raw_text=str(data.get("raw_text", "")),
@@ -251,13 +299,15 @@ def _homework_item(data: dict[str, Any]) -> HomeworkItem:
         question_range=str(data.get("question_range", "")),
         deadline=str(data.get("deadline", "")),
         matched_knowledge=tuple(
-            _knowledge_match(match) for match in data.get("matched_knowledge", [])
+            _knowledge_match(match)
+            for match in _list(data.get("matched_knowledge", []), "matched_knowledge")
         ),
         status=str(data.get("status", "")),
     )
 
 
 def _wrong_question_item(data: dict[str, Any]) -> WrongQuestionItem:
+    data = _object(data, "wrong question item")
     return WrongQuestionItem(
         subject=str(data.get("subject", "")),
         question_id=str(data.get("question_id", "")),
@@ -265,32 +315,42 @@ def _wrong_question_item(data: dict[str, Any]) -> WrongQuestionItem:
         reason=str(data.get("reason", "")),
         problem_type=str(data.get("problem_type", "")),
         matched_knowledge=tuple(
-            _knowledge_match(match) for match in data.get("matched_knowledge", [])
+            _knowledge_match(match)
+            for match in _list(data.get("matched_knowledge", []), "matched_knowledge")
         ),
         next_action=str(data.get("next_action", "")),
     )
 
 
 def _diagnosis(data: dict[str, Any]) -> Diagnosis:
+    data = _object(data, "diagnosis")
+    sticker_color = normalize_sticker_color(str(data.get("sticker_color", "")))
+    primary_reason = str(data.get("primary_reason", ""))
+    secondary_reason = str(data.get("secondary_reason", ""))
+    confidence = _known_value(
+        "confidence",
+        data.get("confidence", ""),
+        CONFIDENCE_VALUES,
+    )
+    confirmation_status = _known_value(
+        "confirmation_status",
+        data.get("confirmation_status", ""),
+        CONFIRMATION_STATUSES,
+    )
+    _validate_reason_pair(sticker_color, primary_reason, secondary_reason)
+    _validate_confirmation(confidence, confirmation_status)
     return Diagnosis(
-        sticker_color=normalize_sticker_color(str(data.get("sticker_color", ""))),
-        primary_reason=str(data.get("primary_reason", "")),
-        secondary_reason=str(data.get("secondary_reason", "")),
+        sticker_color=sticker_color,
+        primary_reason=primary_reason,
+        secondary_reason=secondary_reason,
         evidence=str(data.get("evidence", "")),
-        confidence=_known_value(
-            "confidence",
-            data.get("confidence", ""),
-            CONFIDENCE_VALUES,
-        ),
-        confirmation_status=_known_value(
-            "confirmation_status",
-            data.get("confirmation_status", ""),
-            CONFIRMATION_STATUSES,
-        ),
+        confidence=confidence,
+        confirmation_status=confirmation_status,
     )
 
 
 def _training_question(data: dict[str, Any]) -> TrainingQuestion:
+    data = _object(data, "training question")
     return TrainingQuestion(
         prompt=str(data.get("prompt", "")),
         difficulty=_known_value(
@@ -306,43 +366,73 @@ def _training_question(data: dict[str, Any]) -> TrainingQuestion:
 
 
 def _analysis_cluster(data: dict[str, Any]) -> AnalysisCluster:
+    data = _object(data, "analysis cluster")
     return AnalysisCluster(
         subject=str(data.get("subject", "")),
         problem_type=str(data.get("problem_type", "")),
         diagnosis=_diagnosis(data.get("diagnosis", {})),
         matched_knowledge=tuple(
-            _knowledge_match(match) for match in data.get("matched_knowledge", [])
+            _knowledge_match(match)
+            for match in _list(data.get("matched_knowledge", []), "matched_knowledge")
         ),
         training_questions=tuple(
             _training_question(question)
-            for question in data.get("training_questions", [])
+            for question in _list(
+                data.get("training_questions", []), "training_questions"
+            )
         ),
         difficulty_mix=tuple(
             _known_value("difficulty", item, DIFFICULTY_LEVELS)
-            for item in data.get("difficulty_mix", [])
+            for item in _list(data.get("difficulty_mix", []), "difficulty_mix")
         ),
     )
 
 
 def _training_result(data: dict[str, Any]) -> TrainingResult:
+    data = _object(data, "training result")
+    correct_rate = _float(data.get("correct_rate", 0), "correct_rate")
+    elapsed_minutes = _int(data.get("elapsed_minutes", 0), "elapsed_minutes")
+    target_minutes = _int(data.get("target_minutes", 0), "target_minutes")
+    if not 0 <= correct_rate <= 1:
+        raise ValueError("correct_rate must be between 0 and 1")
+    if elapsed_minutes < 0 or target_minutes < 0:
+        raise ValueError("elapsed_minutes and target_minutes must be non-negative")
     return TrainingResult(
         date=_iso_date(data.get("date", "")),
         subject=str(data.get("subject", "")),
         knowledge_note=str(data.get("knowledge_note", "")),
         problem_type=str(data.get("problem_type", "")),
-        secondary_reason=str(data.get("secondary_reason", "")),
+        secondary_reason=_known_secondary_reason(
+            str(data.get("secondary_reason", ""))
+        ),
         difficulty=_known_value(
             "difficulty",
             data.get("difficulty", ""),
             DIFFICULTY_LEVELS,
         ),
-        correct_rate=float(data.get("correct_rate", 0)),
-        elapsed_minutes=int(data.get("elapsed_minutes", 0)),
+        correct_rate=correct_rate,
+        elapsed_minutes=elapsed_minutes,
+        target_minutes=target_minutes,
+        completion_status=_known_value(
+            "completion_status",
+            data.get("completion_status", ""),
+            COMPLETION_STATUSES,
+        ),
+        major_error=str(data.get("major_error", "")),
+        next_difficulty=_known_value(
+            "next_difficulty",
+            data.get("next_difficulty", ""),
+            DIFFICULTY_LEVELS,
+        ),
+        review_window=str(data.get("review_window", "")),
+        due_date=_iso_date(data.get("due_date", "")),
+        review_result=str(data.get("review_result", "")),
         status=str(data.get("status", "")),
     )
 
 
 def _string_tuple(value: Any) -> tuple[str, ...]:
+    value = _list(value, "string list")
     return tuple(str(item) for item in value)
 
 
@@ -352,3 +442,60 @@ def _known_value(name: str, value: Any, allowed: set[str]) -> str:
         expected = "/".join(sorted(allowed))
         raise ValueError(f"unknown {name} {text!r}, expected {expected}")
     return text
+
+
+def _object(value: Any, name: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{name} must be a JSON object")
+    return value
+
+
+def _list(value: Any, name: str) -> list[Any] | tuple[Any, ...]:
+    if not isinstance(value, (list, tuple)):
+        raise ValueError(f"{name} must be a JSON array")
+    return value
+
+
+def _float(value: Any, name: str) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be a number") from exc
+
+
+def _int(value: Any, name: str) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be an integer") from exc
+
+
+def _validate_reason_pair(
+    sticker_color: str,
+    primary_reason: str,
+    secondary_reason: str,
+) -> None:
+    expected_primary = PRIMARY_REASONS_BY_COLOR[sticker_color]
+    if primary_reason != expected_primary:
+        raise ValueError(
+            f"primary_reason {primary_reason!r} does not match {sticker_color}"
+        )
+    allowed_secondary = SECONDARY_REASONS_BY_COLOR[sticker_color]
+    if secondary_reason not in allowed_secondary:
+        expected = "/".join(sorted(allowed_secondary))
+        raise ValueError(
+            f"secondary_reason {secondary_reason!r} does not match "
+            f"{sticker_color}, expected {expected}"
+        )
+
+
+def _validate_confirmation(confidence: str, confirmation_status: str) -> None:
+    if confidence == "low" and confirmation_status != "needs_confirmation":
+        raise ValueError("low confidence diagnosis must need confirmation")
+    if confidence == "medium" and confirmation_status == "auto":
+        raise ValueError("medium confidence diagnosis cannot be auto-confirmed")
+
+
+def _known_secondary_reason(value: str) -> str:
+    allowed = set().union(*SECONDARY_REASONS_BY_COLOR.values())
+    return _known_value("secondary_reason", value, allowed)

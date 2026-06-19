@@ -9,7 +9,7 @@
       "diagnosis": {
         "sticker_color": "red",
         "primary_reason": "不会",
-        "secondary_reason": "核心概念缺失",
+        "secondary_reason": "概念不清",
         "evidence": "周内两次混淆原子核、电子和质子的相对位置。",
         "confidence": "high",
         "confirmation_status": "confirmed"
@@ -27,7 +27,7 @@
         {
           "prompt": "画出原子结构简图并标出三类粒子。",
           "difficulty": "basic",
-          "target_reason": "核心概念缺失",
+          "target_reason": "概念不清",
           "answer": "中心是原子核，核内有质子和中子，核外有电子。",
           "scoring_points": ["中心原子核", "核内质子和中子", "核外电子"],
           "mastery_signal": "能独立画图并解释粒子位置。"
@@ -41,10 +41,10 @@
       "diagnosis": {
         "sticker_color": "red",
         "primary_reason": "不会",
-        "secondary_reason": "模型与概念对应失败",
+        "secondary_reason": "迁移失败",
         "evidence": "把原子结构模型中的核外电子解释成质子。",
         "confidence": "medium",
-        "confirmation_status": "auto"
+        "confirmation_status": "needs_confirmation"
       },
       "matched_knowledge": [
         {
@@ -59,7 +59,7 @@
         {
           "prompt": "看图判断箭头所指粒子名称，并说明依据。",
           "difficulty": "standard",
-          "target_reason": "模型与概念对应失败",
+          "target_reason": "迁移失败",
           "answer": "根据粒子位置和电性判断，核外粒子为电子。",
           "scoring_points": ["识别位置", "联系电性", "写出粒子名称"],
           "mastery_signal": "能把模型位置转成概念判断。"
@@ -73,9 +73,9 @@
       "diagnosis": {
         "sticker_color": "yellow",
         "primary_reason": "马虎",
-        "secondary_reason": "检查顺序缺失",
+        "secondary_reason": "步骤书写问题",
         "evidence": "计算正确但漏写平行线依据，检查时未回看条件。",
-        "confidence": "medium",
+        "confidence": "high",
         "confirmation_status": "confirmed"
       },
       "matched_knowledge": [
@@ -84,14 +84,14 @@
           "volume": "下册",
           "chapter": "第1章",
           "note": "第1章 1.2 同位角、内错角、同旁内角",
-          "confidence": "medium"
+          "confidence": "high"
         }
       ],
       "training_questions": [
         {
           "prompt": "完成角关系题后，用30秒检查是否写出平行线依据。",
           "difficulty": "standard",
-          "target_reason": "检查顺序缺失",
+          "target_reason": "步骤书写问题",
           "answer": "检查题干条件、角关系名称、等量或互补关系是否完整。",
           "scoring_points": ["检查条件", "检查关系名称", "检查结论"],
           "mastery_signal": "能形成固定检查顺序。"
@@ -105,7 +105,7 @@
       "diagnosis": {
         "sticker_color": "blue",
         "primary_reason": "时间不够",
-        "secondary_reason": "步骤不熟练",
+        "secondary_reason": "计算耗时",
         "evidence": "限时训练中正确率达标但完成时间超出目标2分钟。",
         "confidence": "high",
         "confirmation_status": "confirmed"
@@ -123,7 +123,7 @@
         {
           "prompt": "限时4分钟完成4道平行线性质判断题。",
           "difficulty": "standard",
-          "target_reason": "步骤不熟练",
+          "target_reason": "计算耗时",
           "answer": "先标平行线，再写性质，最后求值或判定。",
           "scoring_points": ["标出条件", "写出性质", "按时完成"],
           "mastery_signal": "能在限时内稳定完成标准题。"
@@ -138,10 +138,17 @@
       "subject": "科学",
       "knowledge_note": "第2章 第3节 第1课时 原子结构模型与原子的构成",
       "problem_type": "概念识别",
-      "secondary_reason": "核心概念缺失",
+      "secondary_reason": "概念不清",
       "difficulty": "basic",
       "correct_rate": 0.6,
       "elapsed_minutes": 12,
+      "target_minutes": 10,
+      "completion_status": "overtime",
+      "major_error": "原子核和核外电子位置混淆",
+      "next_difficulty": "basic",
+      "review_window": "D+7",
+      "due_date": "2026-06-19",
+      "review_result": "needs_retest",
       "status": "needs_d7_review"
     },
     {
@@ -149,10 +156,17 @@
       "subject": "数学",
       "knowledge_note": "第1章 1.2 同位角、内错角、同旁内角",
       "problem_type": "角关系计算",
-      "secondary_reason": "检查顺序缺失",
+      "secondary_reason": "步骤书写问题",
       "difficulty": "standard",
       "correct_rate": 0.86,
       "elapsed_minutes": 10,
+      "target_minutes": 10,
+      "completion_status": "completed",
+      "major_error": "漏写平行线依据",
+      "next_difficulty": "variant",
+      "review_window": "D+3",
+      "due_date": "2026-06-19",
+      "review_result": "passed",
       "status": "yellow_check_passed"
     },
     {
@@ -160,10 +174,17 @@
       "subject": "数学",
       "knowledge_note": "第1章 1.3 平行线的性质与判定",
       "problem_type": "限时计算",
-      "secondary_reason": "步骤不熟练",
+      "secondary_reason": "计算耗时",
       "difficulty": "standard",
       "correct_rate": 0.9,
       "elapsed_minutes": 8,
+      "target_minutes": 6,
+      "completion_status": "overtime",
+      "major_error": "步骤停顿导致超时",
+      "next_difficulty": "standard",
+      "review_window": "D+3",
+      "due_date": "2026-06-21",
+      "review_result": "watch",
       "status": "blue_timing_watch"
     }
   ],
@@ -173,12 +194,19 @@
       "subject": "科学",
       "knowledge_note": "第2章 第3节 第1课时 原子结构模型与原子的构成",
       "problem_type": "概念识别",
-      "secondary_reason": "核心概念缺失",
+      "secondary_reason": "概念不清",
       "difficulty": "basic",
       "correct_rate": 0.6,
       "elapsed_minutes": 12,
+      "target_minutes": 10,
+      "completion_status": "overtime",
+      "major_error": "原子结构概念仍不稳",
+      "next_difficulty": "basic",
+      "review_window": "D+7",
+      "due_date": "2026-06-19",
+      "review_result": "pending",
       "status": "D+7 review"
     }
   ],
-  "uncertain_items": []
+  "uncertain_items": ["科学 模型解释 迁移失败 待确认"]
 }
