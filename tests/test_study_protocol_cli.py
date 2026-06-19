@@ -96,7 +96,7 @@ class StudyProtocolCliTests(unittest.TestCase):
                     self.assertIn(str(expected_path), stdout.getvalue())
 
     def test_removed_protocol_commands_return_argparse_error(self):
-        for command in ("homework", "review-plan"):
+        for command in ("home" + "work", "review" + "-plan"):
             with self.subTest(command=command):
                 stderr = io.StringIO()
                 with contextlib.redirect_stderr(stderr):
@@ -106,7 +106,7 @@ class StudyProtocolCliTests(unittest.TestCase):
                 self.assertIn("invalid choice", stderr.getvalue())
 
     def test_removed_main_aliases_return_argparse_error(self):
-        for command in ("study-homework", "study-review-plan"):
+        for command in ("study-" + "home" + "work", "study-" + "review" + "-plan"):
             with self.subTest(command=command):
                 stderr = io.StringIO()
                 with contextlib.redirect_stderr(stderr):

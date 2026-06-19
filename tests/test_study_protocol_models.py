@@ -37,7 +37,7 @@ class StudyProtocolModelTests(unittest.TestCase):
 
     def test_invalid_task_type_fails(self):
         data = _sample_training()
-        data["task_type"] = "homework_plan"
+        data["task_type"] = "unsupported_plan"
 
         with self.assertRaises(ValueError):
             load_wrong_question_training(_write_json(data))

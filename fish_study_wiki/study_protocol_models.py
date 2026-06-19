@@ -44,53 +44,6 @@ class KnowledgeMatch:
 
 
 @dataclass(frozen=True)
-class HomeworkItem:
-    subject: str
-    raw_text: str
-    book_or_source: str
-    page: str
-    question_range: str
-    deadline: str
-    matched_knowledge: tuple[KnowledgeMatch, ...]
-    status: str
-
-
-@dataclass(frozen=True)
-class HomeworkPlan:
-    task_type: str
-    date: str
-    items: tuple[HomeworkItem, ...]
-    uncertain_items: tuple[str, ...]
-
-
-@dataclass(frozen=True)
-class WrongQuestionItem:
-    subject: str
-    question_id: str
-    sticker_color: str
-    reason: str
-    problem_type: str
-    matched_knowledge: tuple[KnowledgeMatch, ...]
-    next_action: str
-
-
-@dataclass(frozen=True)
-class WrongQuestionReview:
-    task_type: str
-    date: str
-    items: tuple[WrongQuestionItem, ...]
-    uncertain_items: tuple[str, ...]
-
-
-@dataclass(frozen=True)
-class ReviewPlanSource:
-    task_type: str
-    date: str
-    items: tuple[WrongQuestionItem, ...]
-    uncertain_items: tuple[str, ...]
-
-
-@dataclass(frozen=True)
 class Diagnosis:
     sticker_color: str
     primary_reason: str
@@ -158,47 +111,6 @@ class WeeklyReviewSource:
     results: tuple[TrainingResult, ...]
     review_queue: tuple[TrainingResult, ...]
     uncertain_items: tuple[str, ...]
-
-
-def load_homework_plan(path: Path | str) -> HomeworkPlan:
-    data = _load_json(path)
-    _require_task_type(data, "homework_plan")
-    return HomeworkPlan(
-        task_type=data["task_type"],
-        date=_iso_date(data.get("date", "")),
-        items=tuple(
-            _homework_item(item) for item in _list(data.get("items", []), "items")
-        ),
-        uncertain_items=_string_tuple(data.get("uncertain_items", [])),
-    )
-
-
-def load_wrong_question_review(path: Path | str) -> WrongQuestionReview:
-    data = _load_json(path)
-    _require_task_type(data, "wrong_question_review")
-    return WrongQuestionReview(
-        task_type=data["task_type"],
-        date=_iso_date(data.get("date", "")),
-        items=tuple(
-            _wrong_question_item(item)
-            for item in _list(data.get("items", []), "items")
-        ),
-        uncertain_items=_string_tuple(data.get("uncertain_items", [])),
-    )
-
-
-def load_review_plan_source(path: Path | str) -> ReviewPlanSource:
-    data = _load_json(path)
-    _require_task_type(data, "review_plan_source")
-    return ReviewPlanSource(
-        task_type=data["task_type"],
-        date=_iso_date(data.get("date", "")),
-        items=tuple(
-            _wrong_question_item(item)
-            for item in _list(data.get("items", []), "items")
-        ),
-        uncertain_items=_string_tuple(data.get("uncertain_items", [])),
-    )
 
 
 def load_wrong_question_training(path: Path | str) -> WrongQuestionTraining:
@@ -281,44 +193,7 @@ def _knowledge_match(data: dict[str, Any]) -> KnowledgeMatch:
         volume=str(data.get("volume", "")),
         chapter=str(data.get("chapter", "")),
         note=str(data.get("note", "")),
-        confidence=_known_value(
-            "confidence",
-            data.get("confidence", ""),
-            CONFIDENCE_VALUES,
-        ),
-    )
-
-
-def _homework_item(data: dict[str, Any]) -> HomeworkItem:
-    data = _object(data, "homework item")
-    return HomeworkItem(
-        subject=str(data.get("subject", "")),
-        raw_text=str(data.get("raw_text", "")),
-        book_or_source=str(data.get("book_or_source", "")),
-        page=str(data.get("page", "")),
-        question_range=str(data.get("question_range", "")),
-        deadline=str(data.get("deadline", "")),
-        matched_knowledge=tuple(
-            _knowledge_match(match)
-            for match in _list(data.get("matched_knowledge", []), "matched_knowledge")
-        ),
-        status=str(data.get("status", "")),
-    )
-
-
-def _wrong_question_item(data: dict[str, Any]) -> WrongQuestionItem:
-    data = _object(data, "wrong question item")
-    return WrongQuestionItem(
-        subject=str(data.get("subject", "")),
-        question_id=str(data.get("question_id", "")),
-        sticker_color=normalize_sticker_color(str(data.get("sticker_color", ""))),
-        reason=str(data.get("reason", "")),
-        problem_type=str(data.get("problem_type", "")),
-        matched_knowledge=tuple(
-            _knowledge_match(match)
-            for match in _list(data.get("matched_knowledge", []), "matched_knowledge")
-        ),
-        next_action=str(data.get("next_action", "")),
+        confidence=_known_value("confidence", data.get("confidence", ""), CONFIDENCE_VALUES),
     )
 
 
@@ -327,11 +202,7 @@ def _diagnosis(data: dict[str, Any]) -> Diagnosis:
     sticker_color = normalize_sticker_color(str(data.get("sticker_color", "")))
     primary_reason = str(data.get("primary_reason", ""))
     secondary_reason = str(data.get("secondary_reason", ""))
-    confidence = _known_value(
-        "confidence",
-        data.get("confidence", ""),
-        CONFIDENCE_VALUES,
-    )
+    confidence = _known_value("confidence", data.get("confidence", ""), CONFIDENCE_VALUES)
     confirmation_status = _known_value(
         "confirmation_status",
         data.get("confirmation_status", ""),
@@ -353,11 +224,7 @@ def _training_question(data: dict[str, Any]) -> TrainingQuestion:
     data = _object(data, "training question")
     return TrainingQuestion(
         prompt=str(data.get("prompt", "")),
-        difficulty=_known_value(
-            "difficulty",
-            data.get("difficulty", ""),
-            DIFFICULTY_LEVELS,
-        ),
+        difficulty=_known_value("difficulty", data.get("difficulty", ""), DIFFICULTY_LEVELS),
         target_reason=str(data.get("target_reason", "")),
         answer=str(data.get("answer", "")),
         scoring_points=_string_tuple(data.get("scoring_points", [])),
@@ -377,9 +244,7 @@ def _analysis_cluster(data: dict[str, Any]) -> AnalysisCluster:
         ),
         training_questions=tuple(
             _training_question(question)
-            for question in _list(
-                data.get("training_questions", []), "training_questions"
-            )
+            for question in _list(data.get("training_questions", []), "training_questions")
         ),
         difficulty_mix=tuple(
             _known_value("difficulty", item, DIFFICULTY_LEVELS)
@@ -402,14 +267,8 @@ def _training_result(data: dict[str, Any]) -> TrainingResult:
         subject=str(data.get("subject", "")),
         knowledge_note=str(data.get("knowledge_note", "")),
         problem_type=str(data.get("problem_type", "")),
-        secondary_reason=_known_secondary_reason(
-            str(data.get("secondary_reason", ""))
-        ),
-        difficulty=_known_value(
-            "difficulty",
-            data.get("difficulty", ""),
-            DIFFICULTY_LEVELS,
-        ),
+        secondary_reason=_known_secondary_reason(str(data.get("secondary_reason", ""))),
+        difficulty=_known_value("difficulty", data.get("difficulty", ""), DIFFICULTY_LEVELS),
         correct_rate=correct_rate,
         elapsed_minutes=elapsed_minutes,
         target_minutes=target_minutes,
