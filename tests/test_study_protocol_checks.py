@@ -3,12 +3,14 @@ from dataclasses import replace
 
 from fish_study_wiki.study_protocol_checks import (
     check_homework_plan,
+    check_review_plan_source,
     check_wrong_question_review,
 )
 from fish_study_wiki.study_protocol_models import (
     HomeworkItem,
     HomeworkPlan,
     KnowledgeMatch,
+    ReviewPlanSource,
     WrongQuestionItem,
     WrongQuestionReview,
 )
@@ -72,6 +74,7 @@ class StudyProtocolCheckTests(unittest.TestCase):
             {row.code for row in rows},
             {
                 "student_no_answers",
+                "knowledge_note_valid",
                 "knowledge_link_or_pending",
                 "low_confidence_flagged",
                 "printable_path_present",
@@ -100,6 +103,49 @@ class StudyProtocolCheckTests(unittest.TestCase):
         )
 
         row = next(row for row in rows if row.code == "knowledge_link_or_pending")
+        self.assertFalse(row.passed)
+
+    def test_pending_knowledge_must_be_in_uncertain_items(self):
+        plan = homework_plan()
+        item = replace(plan.items[0], matched_knowledge=(knowledge(note="待定位"),))
+        rows = check_homework_plan(replace(plan, items=(item,)), "练习区", "out.html")
+
+        row = next(row for row in rows if row.code == "knowledge_link_or_pending")
+        self.assertFalse(row.passed)
+
+    def test_pending_knowledge_passes_when_explicitly_uncertain(self):
+        plan = homework_plan()
+        item = replace(plan.items[0], matched_knowledge=(knowledge(note="待定位"),))
+        rows = check_homework_plan(
+            replace(plan, items=(item,), uncertain_items=("完成第1题 待定位",)),
+            "练习区",
+            "out.html",
+        )
+
+        row = next(row for row in rows if row.code == "knowledge_link_or_pending")
+        self.assertTrue(row.passed)
+
+    def test_empty_knowledge_note_fails(self):
+        plan = homework_plan()
+        item = replace(plan.items[0], matched_knowledge=(knowledge(note=""),))
+        rows = check_homework_plan(
+            replace(plan, items=(item,), uncertain_items=("完成第1题 待确认",)),
+            "练习区",
+            "out.html",
+        )
+
+        row = next(row for row in rows if row.code == "knowledge_note_valid")
+        self.assertFalse(row.passed)
+
+    def test_empty_knowledge_note_fails_even_with_real_match(self):
+        plan = homework_plan()
+        item = replace(
+            plan.items[0],
+            matched_knowledge=(knowledge(), knowledge(note="")),
+        )
+        rows = check_homework_plan(replace(plan, items=(item,)), "练习区", "out.html")
+
+        row = next(row for row in rows if row.code == "knowledge_note_valid")
         self.assertFalse(row.passed)
 
     def test_low_confidence_must_be_flagged(self):
@@ -137,6 +183,30 @@ class StudyProtocolCheckTests(unittest.TestCase):
 
         row = next(row for row in rows if row.code == "sticker_rules_used")
         self.assertTrue(row.passed)
+
+    def test_wrong_question_pending_knowledge_must_be_uncertain(self):
+        review = wrong_review()
+        item = replace(review.items[0], matched_knowledge=(knowledge(note="待定位"),))
+        rows = check_wrong_question_review(
+            replace(review, items=(item,)), "错题复盘练习", "wrong.html"
+        )
+
+        row = next(row for row in rows if row.code == "knowledge_link_or_pending")
+        self.assertFalse(row.passed)
+
+    def test_review_plan_pending_knowledge_must_be_uncertain(self):
+        review = wrong_review()
+        item = replace(review.items[0], matched_knowledge=(knowledge(note="待定位"),))
+        source = ReviewPlanSource(
+            task_type="review_plan_source",
+            date=review.date,
+            items=(item,),
+            uncertain_items=(),
+        )
+        rows = check_review_plan_source(source)
+
+        row = next(row for row in rows if row.code == "knowledge_link_or_pending")
+        self.assertFalse(row.passed)
 
     def test_unknown_sticker_color_fails_check(self):
         review = wrong_review()

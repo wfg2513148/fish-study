@@ -95,7 +95,7 @@ python3 -m fish_study_wiki.study_protocol_cli homework samples/homework-plan.jso
 
 Codex 看不清题目、无法确认知识点或知识点匹配置信度为 `low` 时，不要猜。处理规则：
 
-- 在 `matched_knowledge` 中写 `note: "待定位"`，或把对应题目写入 `uncertain_items`。
+- 在 `matched_knowledge` 中写 `note: "待定位"`，并把对应题目写入 `uncertain_items`。
 - 低置信度匹配必须在 `uncertain_items` 中点名题目或知识点。
 - CLI 会运行质量检查；缺知识点、低置信度未标记、学生输出疑似含答案时，会在 stderr 输出 `ERROR:` 并返回非 0。
 - 失败后先修正 JSON，再重新运行命令。

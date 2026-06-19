@@ -29,6 +29,7 @@ def check_homework_plan(
 ) -> tuple[CheckRow, ...]:
     return (
         _no_answers_in_student_output(student_output),
+        _valid_knowledge_notes(plan.items),
         _has_knowledge_or_pending(plan.items, plan.uncertain_items),
         _low_confidence_flagged(plan.items, plan.uncertain_items),
         _printable_path_present(printable_path),
@@ -42,6 +43,7 @@ def check_wrong_question_review(
 ) -> tuple[CheckRow, ...]:
     return (
         _no_answers_in_student_output(student_output),
+        _valid_knowledge_notes(review.items),
         _has_knowledge_or_pending(review.items, review.uncertain_items),
         _low_confidence_flagged(review.items, review.uncertain_items),
         _printable_path_present(printable_path),
@@ -51,6 +53,7 @@ def check_wrong_question_review(
 
 def check_review_plan_source(source: ReviewPlanSource) -> tuple[CheckRow, ...]:
     return (
+        _valid_knowledge_notes(source.items),
         _has_knowledge_or_pending(source.items, source.uncertain_items),
         _low_confidence_flagged(source.items, source.uncertain_items),
         _sticker_rules_used(source.items),
@@ -76,16 +79,34 @@ def _has_knowledge_or_pending(
     missing = tuple(
         _item_label(item)
         for item in items
-        if not _knowledge_matches(item)
-        and not _has_item_uncertainty(item, uncertain_items)
+        if not _has_real_knowledge(item)
+        and not _has_flagged_pending_knowledge(item, uncertain_items)
     )
     return CheckRow(
         passed=not missing,
         code="knowledge_link_or_pending",
         message=(
-            "已包含知识点链接或待定位项"
+            "已包含知识点链接或已标待定位项"
             if not missing
             else f"以下项目缺少知识点链接或待定位: {', '.join(missing)}"
+        ),
+    )
+
+
+def _valid_knowledge_notes(items: tuple[object, ...]) -> CheckRow:
+    invalid = tuple(
+        _item_label(item)
+        for item in items
+        for match in _knowledge_matches(item)
+        if not match.note.strip() or match.note != match.note.strip()
+    )
+    return CheckRow(
+        passed=not invalid,
+        code="knowledge_note_valid",
+        message=(
+            "知识点标题有效"
+            if not invalid
+            else f"以下项目包含空白或非法知识点标题: {', '.join(invalid)}"
         ),
     )
 
@@ -144,9 +165,19 @@ def _knowledge_matches(item: object) -> tuple[KnowledgeMatch, ...]:
     return getattr(item, "matched_knowledge", ())
 
 
-def _has_item_uncertainty(item: object, uncertain_items: tuple[str, ...]) -> bool:
-    return any(match.is_pending for match in _knowledge_matches(item)) or any(
-        _mentions_item(uncertain_item, item, ())
+def _has_real_knowledge(item: object) -> bool:
+    return any(
+        bool(match.note.strip()) and not match.is_pending
+        for match in _knowledge_matches(item)
+    )
+
+
+def _has_flagged_pending_knowledge(
+    item: object,
+    uncertain_items: tuple[str, ...],
+) -> bool:
+    return any(match.is_pending for match in _knowledge_matches(item)) and any(
+        _mentions_item(uncertain_item, item, ("待定位",))
         for uncertain_item in uncertain_items
     )
 
@@ -156,7 +187,7 @@ def _has_low_confidence_flag(
     match: KnowledgeMatch,
     uncertain_items: tuple[str, ...],
 ) -> bool:
-    return match.is_pending or any(
+    return any(
         _mentions_item(uncertain_item, item, (match.note,))
         for uncertain_item in uncertain_items
     )
@@ -180,6 +211,7 @@ def _item_tokens(item: object) -> tuple[str, ...]:
     tokens = (
         getattr(item, "raw_text", ""),
         getattr(item, "question_id", ""),
+        getattr(item, "subject", ""),
     )
     return tuple(token for token in tokens if token)
 

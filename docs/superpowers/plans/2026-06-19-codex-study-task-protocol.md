@@ -131,4 +131,3 @@ It does not implement image OCR, handwriting recognition, or automatic answer so
 - Obsidian records are written for daily plans, wrong-question reviews, and review plans.
 - Low-confidence and `待定位` items are surfaced instead of hidden.
 - GitHub private repo is pushed with no tracked raw ZIPs, photos, or full教材/课件 files.
-
