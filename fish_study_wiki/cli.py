@@ -23,6 +23,7 @@ from fish_study_wiki.quality import (
 from fish_study_wiki.source_ledger import load_sources
 from fish_study_wiki.topic_builder import topic_from_source_file
 from fish_study_wiki.vault_writer import (
+    subject_dir,
     topic_link,
     write_subject_index,
     write_topic_note,
@@ -140,12 +141,57 @@ def run_verify(
     return 0
 
 
+def run_study_context(
+    matrix_path: Path = MATRIX_PATH,
+    ledger_path: Path = LEDGER_PATH,
+    vault: Path = settings.VAULT_ROOT,
+) -> int:
+    matrix = load_matrix(matrix_path)
+    sources = [source for source in load_sources(ledger_path) if source.status == "available"]
+    lines = [
+        "# Fish Study 当前工作上下文",
+        "",
+        "## 可用资料范围",
+        "",
+        f"- 覆盖矩阵：{len(matrix)} 个年级/册别/学科组合",
+        f"- 当前可用资料：{len(sources)} 套",
+        "",
+    ]
+    for source in sorted(sources, key=lambda item: item.key):
+        note_count = _topic_note_count(vault, source.grade, source.volume, source.subject)
+        lines.append(
+            f"- {source.grade}{source.volume}{source.subject}：{source.version}，"
+            f"{source.source_id}，知识点笔记 {note_count} 篇"
+        )
+    lines.extend(
+        [
+            "",
+            "## 使用边界",
+            "",
+            "- 只基于上述可用资料定位知识点；没有资料的学科不要猜。",
+            "- 看不清题目或知识点无法确认时，写 `note: 待定位`，并加入 `uncertain_items`。",
+            "- 只有 `confidence: high` 且 `confirmation_status: auto/confirmed` 的分析进入长期统计。",
+            "",
+            "## 常用命令",
+            "",
+            "```bash",
+            "python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json",
+            "python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.json",
+            "python3 -m fish_study_wiki.cli verify",
+            "```",
+        ]
+    )
+    print("\n".join(lines))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python3 -m fish_study_wiki.cli")
     subcommands = parser.add_subparsers(dest="command", required=True)
     subcommands.add_parser("inventory", help="rebuild source ZIP inventories")
     subcommands.add_parser("build", help="build Obsidian wiki indexes and notes")
     subcommands.add_parser("verify", help="write quality reports and run gates")
+    subcommands.add_parser("study-context", help="print current study workflow context")
     _add_study_alias(subcommands, "study-wrong", "generate wrong-question training")
     _add_study_alias(
         subcommands,
@@ -163,6 +209,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_build()
     if args.command == "verify":
         return run_verify()
+    if args.command == "study-context":
+        return run_study_context()
     if args.command == "study-wrong":
         return _run_study_alias(study_protocol_cli.run_wrong, args)
     if args.command == "study-weekly-review":
@@ -179,6 +227,17 @@ def _run_study_alias(
     except (OSError, ValueError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
+
+
+def _topic_note_count(vault: Path, grade: str, volume: str, subject: str) -> int:
+    folder = subject_dir(vault, grade, volume, subject)
+    if not folder.exists():
+        return 0
+    return sum(
+        1
+        for path in folder.glob("*.md")
+        if not path.name.startswith("00-")
+    )
 
 
 def _add_study_alias(

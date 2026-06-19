@@ -10,6 +10,9 @@
 - 将初一、初二各学科知识点沉淀到独立 Obsidian vault，减少每次从 PDF/课件重新解析。
 - 原始教材、教辅、课件只保存在本地；GitHub 仓库只保存流程、索引、模板和可复用脚本。
 
+家长使用说明见：`docs/parent-user-manual.md`
+真实试卷式模拟卷输出规范见：`docs/exam-paper-output.md`
+
 ## 常用指令
 
 在 Codex Desktop 中上传照片后使用：
@@ -20,6 +23,7 @@
 对应 CLI：
 
 ```bash
+python3 -m fish_study_wiki.cli study-context
 python3 -m fish_study_wiki.study_protocol_cli wrong samples/wrong-question-training.json
 python3 -m fish_study_wiki.study_protocol_cli weekly-review samples/weekly-review-source.json
 ```
@@ -31,6 +35,8 @@ python3 -m fish_study_wiki.study_protocol_cli weekly-review samples/weekly-revie
 - 蓝色：时间不够
 
 学生训练卷不包含答案、参考答案、解析或解答；批改答案页单独保存。
+
+需要输出独立模拟卷时，先按 `docs/exam-paper-output.md` 的标准生成 HTML，再导出自包含 PDF：图片必须嵌入 PDF，底部页码使用 `当前页/总页数`，交付时使用 Markdown 绝对路径文件链接。
 
 ## 本地目录
 

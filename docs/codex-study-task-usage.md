@@ -7,6 +7,14 @@
 - 日常：贴好红黄蓝标签的错题照片 -> 错因分析训练卷。
 - 每周：结构化错题数据 -> 周复盘报告和巩固测试。
 
+开始分析前，先输出当前可用资料范围：
+
+```bash
+python3 -m fish_study_wiki.cli study-context
+```
+
+把输出内容作为 Codex Desktop 的上下文。Codex 只能基于其中列出的资料定位知识点；没有资料或看不清的内容必须进入待确认项。
+
 ## 日常错题训练
 
 家长先和孩子在线下看错题，并只用红黄蓝标记一级错因：
@@ -85,6 +93,28 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 - Obsidian 复习计划：`/Users/kwang/Downloads/obsidian/fish-study/40-复习计划/YYYY-MM-DD.md`
 
 周复盘报告包含错因分布、反复知识点、高频二级错因、难度是否合适、遗忘风险、复测队列和下周优先级。
+
+## 真实试卷式模拟卷
+
+当家长要求“看排版”“生成模拟卷”“像真实试卷一样”时，不使用日常错题训练卷的简化模板，而是按 `docs/exam-paper-output.md` 输出独立模拟卷。
+
+必须满足：
+
+- 三科独立成卷。
+- A4 正式试卷样式：密封线、考生信息栏、注意事项、分大题、题量和分值说明。
+- 涉及绘图的题必须使用 `gpt-image-2` 生成正式配图。
+- 科学卷应包含多张图文题配图。
+- 图片必须嵌入最终 PDF，不能依赖远程图片或 HTML 外链。
+- PDF 底部必须有 `当前页/总页数` 页码。
+- 输出后必须做视觉检查和 PDF 结构检查。
+
+交付到 Codex 会话时，用 Markdown 绝对路径文件链接：
+
+```md
+[math-grade7-mock-paper.pdf](/Users/kwang/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+```
+
+不要优先使用 `127.0.0.1` 或 `/mnt/data` 作为交付方式。
 
 ## 难度校准
 

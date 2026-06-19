@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-labelledby="title desc">
+  <title id="title">Fish Study 家长使用流程</title>
+  <desc id="desc">从贴标签和拍照，到 Codex 分析、生成训练卷、打印批改、沉淀到 Obsidian，并在周末复盘。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#2f5d62" />
+    </marker>
+    <style>
+      .bg { fill: #f6f3ec; }
+      .title { font: 700 36px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #243234; }
+      .subtitle { font: 400 18px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #5b686b; }
+      .card { fill: #ffffff; stroke: #d7d0c2; stroke-width: 2; rx: 18; }
+      .label { font: 700 22px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #243234; }
+      .text { font: 400 16px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #526064; }
+      .small { font: 400 14px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #69787c; }
+      .arrow { stroke: #2f5d62; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .red { fill: #d94a4a; }
+      .yellow { fill: #e0a526; }
+      .blue { fill: #3d72c4; }
+      .green { fill: #2f7d59; }
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="560" />
+  <text class="title" x="64" y="70">家长每天只做三件事：标错因、拍照片、打印训练</text>
+  <text class="subtitle" x="64" y="105">工具负责把错题和已有知识库连起来，生成学生卷、答案页和周复盘。</text>
+
+  <rect class="card" x="64" y="165" width="180" height="190" />
+  <circle class="red" cx="100" cy="215" r="12" />
+  <circle class="yellow" cx="130" cy="215" r="12" />
+  <circle class="blue" cx="160" cy="215" r="12" />
+  <text class="label" x="96" y="260">贴标签</text>
+  <text class="text" x="96" y="295">红：不会</text>
+  <text class="text" x="96" y="320">黄：马虎</text>
+  <text class="text" x="96" y="345">蓝：时间不够</text>
+
+  <path class="arrow" d="M254 260 H326" />
+
+  <rect class="card" x="340" y="165" width="180" height="190" />
+  <rect x="388" y="205" width="84" height="108" rx="10" fill="#e9eef0" stroke="#b8c5c8" stroke-width="2" />
+  <circle cx="430" cy="258" r="24" fill="#ffffff" stroke="#7f9298" stroke-width="3" />
+  <text class="label" x="388" y="345">拍照上传</text>
+
+  <path class="arrow" d="M530 260 H602" />
+
+  <rect class="card" x="616" y="165" width="210" height="190" />
+  <text class="label" x="656" y="220">Codex 分析</text>
+  <text class="text" x="656" y="258">匹配已有知识点</text>
+  <text class="text" x="656" y="286">生成结构化 JSON</text>
+  <text class="small" x="656" y="318">不确定就进入待确认</text>
+
+  <path class="arrow" d="M836 260 H908" />
+
+  <rect class="card" x="922" y="165" width="210" height="190" />
+  <text class="label" x="960" y="220">一键生成</text>
+  <text class="text" x="960" y="258">学生训练卷</text>
+  <text class="text" x="960" y="286">家长答案页</text>
+  <text class="text" x="960" y="314">Obsidian 记录</text>
+
+  <path class="arrow" d="M1027 365 V420 H292 V376" />
+
+  <rect class="card" x="200" y="410" width="270" height="105" />
+  <text class="label" x="238" y="455">当天打印和批改</text>
+  <text class="text" x="238" y="488">学生只看训练卷，答案单独保管。</text>
+
+  <rect class="card" x="520" y="410" width="270" height="105" />
+  <text class="label" x="558" y="455">自动沉淀</text>
+  <text class="text" x="558" y="488">错因和知识点写入本地知识库。</text>
+
+  <rect class="card" x="840" y="410" width="270" height="105" />
+  <text class="label" x="878" y="455">周末复盘</text>
+  <text class="text" x="878" y="488">看反复知识点、复测队列和下周重点。</text>
+</svg>
