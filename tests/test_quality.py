@@ -209,6 +209,118 @@ class QualityTests(unittest.TestCase):
                 vault_report.read_text(encoding="utf-8"),
             )
 
+    def test_graph_gate_requires_lifecycle_frontmatter_and_graph(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix_path = root / "matrix.json"
+            ledger_path = root / "ledger.json"
+            vault = root / "vault"
+            graph_path = root / "data" / "wiki" / "knowledge-graph.json"
+            matrix_path.write_text(
+                json.dumps(
+                    [{"grade": "七年级", "volume": "下册", "subject": "数学"}],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps([source_row()], ensure_ascii=False), encoding="utf-8"
+            )
+            subject_dir = vault / "10-教材Wiki" / "七年级" / "下册" / "数学"
+            subject_dir.mkdir(parents=True)
+            (subject_dir / "00-数学七年级下册索引.md").write_text(
+                "index", encoding="utf-8"
+            )
+            (subject_dir / "专题1.md").write_text(
+                "---\ntype: knowledge\nsource_id: demo\n---\n\n# 专题1\n",
+                encoding="utf-8",
+            )
+
+            with patch("fish_study_wiki.quality.validate_available_source"):
+                report = build_quality_report(
+                    matrix_path,
+                    ledger_path,
+                    vault,
+                    graph_path,
+                )
+
+        self.assertFalse(report.passed)
+        self.assertTrue(
+            any("missing lifecycle frontmatter" in error for error in report.errors)
+        )
+        self.assertIn(f"knowledge graph not found: {graph_path}", report.errors)
+
+    def test_graph_gate_accepts_valid_lifecycle_graph(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            matrix_path = root / "matrix.json"
+            ledger_path = root / "ledger.json"
+            vault = root / "vault"
+            graph_path = root / "data" / "wiki" / "knowledge-graph.json"
+            matrix_path.write_text(
+                json.dumps(
+                    [{"grade": "七年级", "volume": "下册", "subject": "数学"}],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            ledger_path.write_text(
+                json.dumps([source_row()], ensure_ascii=False), encoding="utf-8"
+            )
+            subject_dir = vault / "10-教材Wiki" / "七年级" / "下册" / "数学"
+            subject_dir.mkdir(parents=True)
+            (subject_dir / "00-数学七年级下册索引.md").write_text(
+                "index", encoding="utf-8"
+            )
+            (subject_dir / "专题1.md").write_text(
+                "---\n"
+                "type: knowledge\n"
+                "source_id: demo\n"
+                "confidence: high\n"
+                "last_confirmed: 2026-06-19\n"
+                "lifecycle_status: active\n"
+                "---\n\n"
+                "# 专题1\n",
+                encoding="utf-8",
+            )
+            graph_path.parent.mkdir(parents=True)
+            graph_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": 1,
+                        "nodes": [
+                            {
+                                "id": "topic:七年级:下册:数学:专题1",
+                                "type": "knowledge_point",
+                                "label": "专题1",
+                                "subject": "数学",
+                                "grade": "七年级",
+                                "volume": "下册",
+                                "confidence": "high",
+                            }
+                        ],
+                        "edges": [],
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            with patch("fish_study_wiki.quality.validate_available_source"):
+                report = build_quality_report(
+                    matrix_path,
+                    ledger_path,
+                    vault,
+                    graph_path,
+                )
+
+        graph_errors = [
+            error
+            for error in report.errors
+            if "knowledge graph" in error or "lifecycle frontmatter" in error
+        ]
+        self.assertEqual(graph_errors, [])
+
 
 if __name__ == "__main__":
     unittest.main()

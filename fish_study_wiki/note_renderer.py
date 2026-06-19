@@ -3,8 +3,13 @@ from __future__ import annotations
 from fish_study_wiki.models import TopicNote
 
 
-def render_topic_note(note: TopicNote) -> str:
-    index_name = f"00-{note.subject}{note.grade}{note.volume}索引"
+def _yaml_list(items: tuple[str, ...]) -> str:
+    if not items:
+        return "[]"
+    return "[" + ", ".join(f'"{item}"' for item in items) + "]"
+
+
+def render_topic_frontmatter(note: TopicNote) -> str:
     return f"""---
 type: knowledge
 subject: {note.subject}
@@ -12,9 +17,21 @@ grade: {note.grade}
 volume: {note.volume}
 version: {note.version}
 source: {note.source_id}
+source_id: {note.source_id}
 source_file: {note.source_file}
 status: {note.status}
+confidence: {note.confidence}
+last_confirmed: {note.last_confirmed}
+lifecycle_status: {note.lifecycle_status}
+supersedes: {_yaml_list(note.supersedes)}
+reinforced_by: {_yaml_list(note.reinforced_by)}
 ---
+"""
+
+
+def render_topic_note(note: TopicNote) -> str:
+    index_name = f"00-{note.subject}{note.grade}{note.volume}索引"
+    return f"""{render_topic_frontmatter(note)}
 
 # {note.title}
 

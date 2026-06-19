@@ -128,6 +128,7 @@ def build_quality_report(
     matrix_path: Path,
     ledger_path: Path,
     vault: Path,
+    graph_path: Path | None = None,
 ) -> QualityReport:
     matrix = load_matrix(matrix_path)
     valid_keys = matrix_keys(matrix)
@@ -176,6 +177,10 @@ def build_quality_report(
 
     if len(rows) != 28:
         errors.append(f"matrix row count is {len(rows)}, expected 28")
+
+    if graph_path is not None:
+        errors.extend(_validate_lifecycle_frontmatter(vault, rows))
+        errors.extend(_validate_knowledge_graph(graph_path, rows))
 
     return QualityReport(rows=tuple(rows), errors=tuple(errors))
 
@@ -231,3 +236,102 @@ def write_quality_reports(
     vault_report_path.parent.mkdir(parents=True, exist_ok=True)
     repo_report_path.write_text(text, encoding="utf-8")
     vault_report_path.write_text(text, encoding="utf-8")
+
+
+def _validate_lifecycle_frontmatter(
+    vault: Path,
+    rows: list[QualityRow],
+) -> list[str]:
+    errors: list[str] = []
+    required = ("source_id:", "confidence:", "last_confirmed:", "lifecycle_status:")
+    for row in rows:
+        folder = subject_dir(vault, row.grade, row.volume, row.subject)
+        if not folder.exists():
+            continue
+        index_name = f"00-{row.subject}{row.grade}{row.volume}索引.md"
+        for path in sorted(folder.glob("*.md")):
+            if path.name == index_name:
+                continue
+            frontmatter = _frontmatter(path)
+            if not frontmatter:
+                continue
+            if (
+                "type: knowledge" not in frontmatter
+                and "type: source-index" not in frontmatter
+            ):
+                continue
+            missing = [field for field in required if field not in frontmatter]
+            if missing:
+                errors.append(
+                    f"{path} missing lifecycle frontmatter: {', '.join(missing)}"
+                )
+    return errors
+
+
+def _validate_knowledge_graph(
+    graph_path: Path,
+    rows: list[QualityRow],
+) -> list[str]:
+    if not graph_path.exists():
+        return [f"knowledge graph not found: {graph_path}"]
+    try:
+        data = json.loads(graph_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"knowledge graph is invalid JSON: {exc}"]
+    errors: list[str] = []
+    if data.get("schema_version") != 1:
+        errors.append("knowledge graph schema_version must be 1")
+    nodes = data.get("nodes")
+    edges = data.get("edges")
+    if not isinstance(nodes, list):
+        errors.append("knowledge graph nodes must be a list")
+        nodes = []
+    if not isinstance(edges, list):
+        errors.append("knowledge graph edges must be a list")
+        edges = []
+    verified_topic_count = sum(row.topic_count for row in rows if row.topic_count)
+    knowledge_nodes = [
+        node
+        for node in nodes
+        if isinstance(node, dict) and node.get("type") == "knowledge_point"
+    ]
+    if verified_topic_count and not knowledge_nodes:
+        errors.append("knowledge graph has no knowledge_point nodes")
+    for node in knowledge_nodes:
+        missing = [
+            field
+            for field in ("id", "label", "subject", "grade", "volume", "confidence")
+            if not node.get(field)
+        ]
+        if missing:
+            errors.append(
+                f"knowledge graph node {node.get('id', '<missing>')} "
+                f"missing fields: {', '.join(missing)}"
+            )
+    edge_node_ids = {
+        node["id"] for node in nodes if isinstance(node, dict) and node.get("id")
+    }
+    for edge in edges:
+        if not isinstance(edge, dict):
+            errors.append("knowledge graph edge must be an object")
+            continue
+        for key in ("source", "target", "type"):
+            if not edge.get(key):
+                errors.append(
+                    f"knowledge graph edge {edge.get('id', '<missing>')} missing {key}"
+                )
+        if edge.get("source") and edge["source"] not in edge_node_ids:
+            errors.append(f"knowledge graph edge source not found: {edge['source']}")
+        if edge.get("target") and edge["target"] not in edge_node_ids:
+            errors.append(f"knowledge graph edge target not found: {edge['target']}")
+    return errors
+
+
+def _frontmatter(path: Path) -> str:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        return ""
+    end = text.find("\n---", 4)
+    if end == -1:
+        return ""
+    return text[4:end]

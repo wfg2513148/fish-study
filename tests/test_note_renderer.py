@@ -21,6 +21,9 @@ class NoteRendererTests(unittest.TestCase):
         markdown = render_topic_note(note)
 
         self.assertIn("type: knowledge", markdown)
+        self.assertIn("source_id: 5star-math-zjjy-g7b-2026spring", markdown)
+        self.assertIn("confidence: medium", markdown)
+        self.assertIn("lifecycle_status: active", markdown)
         self.assertIn("# 第1章 1.1 直线的相交", markdown)
         self.assertIn("[[00-数学七年级下册索引]]", markdown)
         self.assertIn("直线相交形成角", markdown)

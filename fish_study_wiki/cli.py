@@ -9,6 +9,7 @@ import zipfile
 
 from fish_study_wiki import settings
 from fish_study_wiki import study_protocol_cli
+from fish_study_wiki.knowledge_graph import build_topic_graph, write_graph
 from fish_study_wiki.models import SourceRecord
 from fish_study_wiki.pptx_text import extract_pptx_text
 from fish_study_wiki.quality import (
@@ -57,9 +58,13 @@ def source_topics(
     vault: Path = settings.VAULT_ROOT,
     ledger_path: Path = LEDGER_PATH,
     matrix_path: Path = MATRIX_PATH,
+    graph_path: Path | None = None,
 ) -> dict[tuple[str, str, str], tuple[str, list[str]]]:
     grouped: dict[tuple[str, str, str], tuple[str, list[str]]] = {}
-    for source, zip_path in available_sources_with_paths(ledger_path, matrix_path):
+    sources_with_paths = available_sources_with_paths(ledger_path, matrix_path)
+    sources = [source for source, _ in sources_with_paths]
+    notes = []
+    for source, zip_path in sources_with_paths:
         key = (source.grade, source.volume, source.subject)
         version, links = grouped.setdefault(key, (source.version, []))
         with zipfile.ZipFile(zip_path) as archive:
@@ -72,8 +77,11 @@ def source_topics(
                 extracted_text = extract_pptx_text(io.BytesIO(archive.read(info)))
                 note = topic_from_source_file(source, source_file, extracted_text)
                 write_topic_note(vault, note)
+                notes.append(note)
                 links.append(topic_link(note))
         grouped[key] = (version, links)
+    if graph_path is not None:
+        write_graph(build_topic_graph(sources, notes), graph_path)
     return grouped
 
 
@@ -100,10 +108,11 @@ def run_inventory(
 
 
 def run_build(vault: Path = settings.VAULT_ROOT) -> int:
-    grouped = source_topics(vault)
+    grouped = source_topics(vault, graph_path=settings.KNOWLEDGE_GRAPH_PATH)
     make_subject_indexes(grouped, vault)
     topic_count = sum(len(links) for _, links in grouped.values())
     print(f"Built {topic_count} topic links and subject indexes under {vault}")
+    print(f"Wrote knowledge graph to {settings.KNOWLEDGE_GRAPH_PATH}")
     return 0
 
 
@@ -114,7 +123,12 @@ def run_verify(
     repo_report_path: Path = REPO_QUALITY_PATH,
     vault_report_path: Path = VAULT_QUALITY_PATH,
 ) -> int:
-    report = build_quality_report(matrix_path, ledger_path, vault)
+    report = build_quality_report(
+        matrix_path,
+        ledger_path,
+        vault,
+        settings.KNOWLEDGE_GRAPH_PATH,
+    )
     write_quality_reports(report, repo_report_path, vault_report_path)
     print(f"Wrote quality report to {repo_report_path}")
     print(f"Wrote vault quality report to {vault_report_path}")

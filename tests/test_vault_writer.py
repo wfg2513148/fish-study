@@ -49,6 +49,35 @@ class VaultWriterTests(unittest.TestCase):
 
         self.assertEqual(text, "user note\n")
 
+    def test_write_topic_note_updates_generated_frontmatter_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            vault = Path(tmp)
+            note = TopicNote(
+                title="第1章 1.1 直线的相交",
+                subject="数学",
+                grade="七年级",
+                volume="下册",
+                version="浙教版",
+                source_id="source",
+                source_file="file.pptx",
+                status="extracted",
+                summary="summary",
+                confidence="high",
+                last_confirmed="2026-06-19",
+            )
+            path = write_topic_note(vault, note)
+            path.write_text(
+                "---\ntype: source-index\nsubject: 数学\n---\n\n# 手写正文\n",
+                encoding="utf-8",
+            )
+
+            write_topic_note(vault, note)
+            text = path.read_text(encoding="utf-8")
+
+        self.assertIn("source_id: source", text)
+        self.assertIn("confidence: high", text)
+        self.assertIn("# 手写正文", text)
+
     def test_write_subject_index_contains_topic_links(self):
         with tempfile.TemporaryDirectory() as tmp:
             vault = Path(tmp)

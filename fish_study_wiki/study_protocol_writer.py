@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from fish_study_wiki.knowledge_graph import merge_training_events
 from fish_study_wiki.models import safe_markdown_filename
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
@@ -44,6 +45,7 @@ def write_training_outputs(
     training: WrongQuestionTraining,
     output_root: Path | str = DEFAULT_OUTPUT_ROOT,
     vault_root: Path | str = DEFAULT_VAULT_ROOT,
+    graph_path: Path | str | None = None,
 ) -> TrainingWriteResult:
     output_dir = _dated_output_dir(output_root, training.date)
     student_html = output_dir / "wrong-question-training.html"
@@ -63,6 +65,7 @@ def write_training_outputs(
         student_html,
         answer_html,
     )
+    merge_training_events(_default_graph_path(output_root, graph_path), training)
     return TrainingWriteResult(
         student_html,
         answer_html,
@@ -102,6 +105,15 @@ def _dated_output_dir(output_root: Path | str, plan_date: str) -> Path:
     output_dir = Path(output_root) / plan_date
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
+
+
+def _default_graph_path(
+    output_root: Path | str,
+    graph_path: Path | str | None,
+) -> Path:
+    if graph_path is not None:
+        return Path(graph_path)
+    return Path(output_root).parent / "data" / "wiki" / "knowledge-graph.json"
 
 
 def _wrong_question_path(vault_root: Path | str, plan_date: str) -> Path:

@@ -43,6 +43,7 @@ class StudyProtocolWriterTests(unittest.TestCase):
             self.assertTrue(result.student_html.exists())
             self.assertTrue(result.answer_html.exists())
             self.assertTrue(result.obsidian_note.exists())
+            self.assertTrue((root / "data" / "wiki" / "knowledge-graph.json").exists())
             self.assertIn("批改答案页", result.obsidian_note.read_text(encoding="utf-8"))
 
     def test_training_student_file_has_no_answer_markers(self):

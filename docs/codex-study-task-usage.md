@@ -45,6 +45,7 @@ python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 - 批改答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
 - Obsidian 错题归因：`/Users/kwang/Downloads/obsidian/fish-study/20-错题归因/YYYY-MM-DD.md`
 - Obsidian 知识点事件：`/Users/kwang/Downloads/obsidian/fish-study/10-教材Wiki/.../*.md`
+- 本地知识图谱事件：`data/wiki/knowledge-graph.json`
 
 学生训练卷不包含答案、参考答案、解析或解答。答案页单独保存，用于家长批改和下一次难度调整。
 
@@ -110,6 +111,7 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 Codex 看不清题目、无法确认知识点或诊断置信度不高时，不要猜。
 
 - `confidence: high` 且 `confirmation_status: auto/confirmed` 才进入长期统计。
+- 只有进入长期统计的错题事件才会写入本地知识图谱。
 - `confidence: medium/low` 必须进入 `uncertain_items`。
 - 待确认项会出现在当次记录中，但不会写入知识点长期趋势事件。
 - 空知识点、待确认缺失、学生卷疑似含答案、难度梯度不合格时，CLI 会输出 `ERROR:` 并返回非 0。

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fish_study_wiki.models import TopicNote
-from fish_study_wiki.note_renderer import render_topic_note
+from fish_study_wiki.note_renderer import render_topic_frontmatter, render_topic_note
 
 
 GENERATED_BEGIN = "<!-- fish-study-wiki:generated-topic-links:start -->"
@@ -82,4 +82,23 @@ def write_topic_note(vault: Path, note: TopicNote) -> Path:
     path = folder / note.safe_filename
     if not path.exists():
         path.write_text(render_topic_note(note), encoding="utf-8")
+    else:
+        current = path.read_text(encoding="utf-8")
+        updated = _merge_topic_frontmatter(current, note)
+        if updated != current:
+            path.write_text(updated, encoding="utf-8")
     return path
+
+
+def _merge_topic_frontmatter(current: str, note: TopicNote) -> str:
+    if not current.startswith("---\n"):
+        return current
+    end_marker = "\n---"
+    end = current.find(end_marker, 4)
+    if end == -1:
+        return current
+    frontmatter = current[4:end]
+    if "type: knowledge" not in frontmatter and "type: source-index" not in frontmatter:
+        return current
+    body = current[end + len(end_marker) :].lstrip("\n")
+    return f"{render_topic_frontmatter(note).rstrip()}\n\n{body}"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 import re
 
@@ -21,8 +22,12 @@ def summarize_text(text: str, max_chars: int = 180) -> str:
 
 
 def topic_from_source_file(
-    source: SourceRecord, source_file: str, extracted_text: str
+    source: SourceRecord,
+    source_file: str,
+    extracted_text: str,
+    confirmed_on: str | None = None,
 ) -> TopicNote:
+    has_text = bool(extracted_text.strip())
     return TopicNote(
         title=clean_title(source_file),
         subject=source.subject,
@@ -31,6 +36,8 @@ def topic_from_source_file(
         version=source.version,
         source_id=source.source_id,
         source_file=source_file,
-        status="extracted" if extracted_text.strip() else "source_index",
+        status="extracted" if has_text else "source_index",
         summary=summarize_text(extracted_text),
+        confidence="high" if has_text else "medium",
+        last_confirmed=confirmed_on or date.today().isoformat(),
     )

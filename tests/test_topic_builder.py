@@ -22,10 +22,13 @@ class TopicBuilderTests(unittest.TestCase):
             source,
             "第2章　第3节　第1课时　原子结构模型与原子的构成.pptx",
             "原子由原子核和核外电子构成。",
+            confirmed_on="2026-06-19",
         )
 
         self.assertEqual(note.title, "第2章 第3节 第1课时 原子结构模型与原子的构成")
         self.assertEqual(note.status, "extracted")
+        self.assertEqual(note.confidence, "high")
+        self.assertEqual(note.last_confirmed, "2026-06-19")
         self.assertIn("原子由原子核", note.summary)
 
     def test_topic_without_text_stays_source_index(self):
@@ -41,9 +44,10 @@ class TopicBuilderTests(unittest.TestCase):
             sha256="abc",
         )
 
-        note = topic_from_source_file(source, "专题1.pptx", "")
+        note = topic_from_source_file(source, "专题1.pptx", "", confirmed_on="2026-06-19")
 
         self.assertEqual(note.status, "source_index")
+        self.assertEqual(note.confidence, "medium")
         self.assertIn("正文抽取未获得可用文本", note.summary)
 
 

@@ -4,6 +4,9 @@ from dataclasses import dataclass
 import re
 
 
+DEFAULT_LIFECYCLE_STATUS = "active"
+
+
 def safe_markdown_filename(title: str) -> str:
     cleaned = re.sub(r'[\\/:*?"<>|]', "-", title)
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
@@ -42,7 +45,16 @@ class TopicNote:
     source_file: str
     status: str
     summary: str
+    confidence: str = "medium"
+    last_confirmed: str = ""
+    lifecycle_status: str = DEFAULT_LIFECYCLE_STATUS
+    supersedes: tuple[str, ...] = ()
+    reinforced_by: tuple[str, ...] = ()
 
     @property
     def safe_filename(self) -> str:
         return safe_markdown_filename(self.title)
+
+    @property
+    def graph_id(self) -> str:
+        return f"topic:{self.grade}:{self.volume}:{self.subject}:{self.title}"

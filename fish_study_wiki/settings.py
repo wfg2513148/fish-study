@@ -7,6 +7,8 @@ RAW_SOURCE_DIR = REPO_ROOT / "sources" / "raw"
 INVENTORY_DIR = REPO_ROOT / "sources" / "inventory"
 EXTRACTED_DIR = REPO_ROOT / "sources" / "extracted"
 REPORT_DIR = REPO_ROOT / "reports"
+WIKI_DATA_DIR = REPO_ROOT / "data" / "wiki"
+KNOWLEDGE_GRAPH_PATH = WIKI_DATA_DIR / "knowledge-graph.json"
 
 GRADES = ["七年级", "八年级"]
 VOLUMES = ["上册", "下册"]

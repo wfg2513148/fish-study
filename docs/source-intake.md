@@ -59,6 +59,15 @@ python3 -m fish_study_wiki.cli build
 ```
 
 该命令会读取可用 ZIP 中的 PPTX，生成知识点笔记，并更新每个学科册别的 `00-...索引.md`。已有知识点笔记不会被覆盖，避免改掉手工整理过的内容。
+如果已有笔记是 `type: knowledge` 或旧 `type: source-index`，命令只会迁移 frontmatter，补齐 `source_id`、`confidence`、`last_confirmed`、`lifecycle_status` 等生命周期字段，正文和错题分析事件保持不变。
+
+命令还会刷新：
+
+```text
+data/wiki/knowledge-graph.json
+```
+
+该图谱记录教材来源、年级册别学科范围、知识点节点及它们之间的 `covers`、`contains`、`includes` 关系。
 
 ## 6. 校验质量报告
 
@@ -71,7 +80,7 @@ python3 -m fish_study_wiki.cli verify
 - `reports/wiki-quality.md`
 - `/Users/kwang/Downloads/obsidian/fish-study/00-入口/wiki-quality.md`
 
-报告必须保持 28 行覆盖矩阵。新增资料对应行应从 `missing_source` 变为 `verified` 或 `source_index`。如果出现 `ERROR`，先修复来源路径、SHA256 或 vault 索引，再提交。
+报告必须保持 28 行覆盖矩阵。新增资料对应行应从 `missing_source` 变为 `verified` 或 `source_index`。如果出现 `ERROR`，先修复来源路径、SHA256、vault 索引、知识点生命周期字段或知识图谱，再提交。
 
 ## 7. 提交边界
 
@@ -81,6 +90,7 @@ python3 -m fish_study_wiki.cli verify
 - `sources/inventory/*.sha256`
 - `sources/inventory/*.files.md`
 - `sources/inventory/downloaded-sources.md`
+- `data/wiki/knowledge-graph.json`
 - `reports/wiki-quality.md`
 - 文档、模板和 Python 脚本
 

@@ -68,7 +68,12 @@ scripts/build_vault_indexes.py
 - `reports/wiki-quality.md`
 - `/Users/kwang/Downloads/obsidian/fish-study/00-入口/wiki-quality.md`
 
+`build` 会同时写入本地知识图谱：
+
+- `data/wiki/knowledge-graph.json`
+
 质量报告覆盖初一、初二上下册 7 个学科的 28 个年级/册别/学科组合。当前没有本地资料的组合会标为 `missing_source`，不阻塞已下载资料的校验和重建。
+已生成的 `type: knowledge` 或旧 `type: source-index` 知识点笔记会保留正文和错题事件，只迁移 frontmatter，用于记录 `source_id`、`confidence`、`last_confirmed`、`lifecycle_status` 等生命周期元数据。
 
 ## 增量资料接入
 
@@ -84,4 +89,4 @@ scripts/build_vault_indexes.py
 
 ## 版权边界
 
-本项目只为家庭学习本地使用。不要把教材、课件 ZIP、完整 PDF、完整图片扫描件或大段原文提交到 GitHub；可以提交目录索引、校验值、知识点摘要、错题归因结构和自编练习。
+本项目只为家庭学习本地使用。不要把教材、课件 ZIP、完整 PDF、完整图片扫描件或大段原文提交到 GitHub；可以提交目录索引、校验值、知识点摘要、知识图谱、错题归因结构和自编练习。
