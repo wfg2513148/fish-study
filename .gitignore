@@ -1,0 +1,13 @@
+.DS_Store
+
+# Local source materials. Keep copyrighted courseware local.
+sources/raw/
+sources/extracted/
+
+# Generated printable output.
+outputs/
+
+# Local runtime/cache files.
+.cache/
+*.log
+
