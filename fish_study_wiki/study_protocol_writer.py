@@ -9,6 +9,7 @@ from fish_study_wiki.study_protocol_models import (
     HomeworkItem,
     HomeworkPlan,
     KnowledgeMatch,
+    ReviewPlanSource,
     WrongQuestionItem,
     WrongQuestionReview,
 )
@@ -16,6 +17,7 @@ from fish_study_wiki.study_protocol_render import (
     COLOR_LABELS,
     render_homework_parent_markdown,
     render_homework_student_html,
+    render_review_plan_markdown,
     render_wrong_question_parent_markdown,
     render_wrong_question_student_html,
 )
@@ -31,6 +33,12 @@ class StudyProtocolWriteResult:
     parent_markdown: Path
     obsidian_note: Path
     knowledge_notes: tuple[Path, ...] = ()
+
+
+@dataclass(frozen=True)
+class ReviewPlanWriteResult:
+    markdown: Path
+    obsidian_note: Path
 
 
 def write_homework_outputs(
@@ -81,6 +89,24 @@ def write_wrong_question_outputs(
     )
 
 
+def write_review_plan_outputs(
+    source: ReviewPlanSource,
+    output_root: Path | str = DEFAULT_OUTPUT_ROOT,
+    vault_root: Path | str = DEFAULT_VAULT_ROOT,
+) -> ReviewPlanWriteResult:
+    output_dir = _dated_output_dir(output_root, source.date)
+    markdown = output_dir / "review-plan.md"
+    markdown.write_text(render_review_plan_markdown(source), encoding="utf-8")
+
+    obsidian_note = _review_plan_path(vault_root, source.date)
+    obsidian_note.parent.mkdir(parents=True, exist_ok=True)
+    obsidian_note.write_text(
+        _render_review_plan_note(source, markdown),
+        encoding="utf-8",
+    )
+    return ReviewPlanWriteResult(markdown, obsidian_note)
+
+
 def _dated_output_dir(output_root: Path | str, plan_date: str) -> Path:
     output_dir = Path(output_root) / plan_date
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -93,6 +119,10 @@ def _daily_plan_path(vault_root: Path | str, plan_date: str) -> Path:
 
 def _wrong_question_path(vault_root: Path | str, plan_date: str) -> Path:
     return Path(vault_root) / "20-错题归因" / f"{plan_date}.md"
+
+
+def _review_plan_path(vault_root: Path | str, plan_date: str) -> Path:
+    return Path(vault_root) / "40-复习计划" / f"{plan_date}.md"
 
 
 def _render_daily_plan_note(
@@ -141,6 +171,23 @@ def _render_wrong_question_note(
 ## 待确认项
 
 {_uncertain_items(review.uncertain_items)}
+"""
+
+
+def _render_review_plan_note(source: ReviewPlanSource, markdown: Path) -> str:
+    return f"""# {source.date} 红黄蓝复习计划记录
+
+## 计划文件
+
+- 复习计划：{markdown}
+
+## 复习安排
+
+{render_review_plan_markdown(source).strip()}
+
+## 待确认项
+
+{_uncertain_items(source.uncertain_items)}
 """
 
 

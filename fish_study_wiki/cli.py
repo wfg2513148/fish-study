@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 import io
 from pathlib import Path
 import sys
 import zipfile
 
 from fish_study_wiki import settings
+from fish_study_wiki import study_protocol_cli
 from fish_study_wiki.models import SourceRecord
 from fish_study_wiki.pptx_text import extract_pptx_text
 from fish_study_wiki.quality import (
@@ -130,6 +132,13 @@ def build_parser() -> argparse.ArgumentParser:
     subcommands.add_parser("inventory", help="rebuild source ZIP inventories")
     subcommands.add_parser("build", help="build Obsidian wiki indexes and notes")
     subcommands.add_parser("verify", help="write quality reports and run gates")
+    _add_study_alias(subcommands, "study-homework", "generate today's study plan")
+    _add_study_alias(subcommands, "study-wrong", "generate wrong-question review")
+    _add_study_alias(
+        subcommands,
+        "study-review-plan",
+        "generate red/yellow/blue review plan",
+    )
     return parser
 
 
@@ -141,7 +150,43 @@ def main(argv: list[str] | None = None) -> int:
         return run_build()
     if args.command == "verify":
         return run_verify()
+    if args.command == "study-homework":
+        return _run_study_alias(study_protocol_cli.run_homework, args)
+    if args.command == "study-wrong":
+        return _run_study_alias(study_protocol_cli.run_wrong, args)
+    if args.command == "study-review-plan":
+        return _run_study_alias(study_protocol_cli.run_review_plan, args)
     raise ValueError(f"unknown command: {args.command}")
+
+
+def _run_study_alias(
+    runner: Callable[[Path, Path, Path], int],
+    args: argparse.Namespace,
+) -> int:
+    try:
+        return runner(args.input_path, args.output_root, args.vault_root)
+    except (OSError, ValueError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+
+def _add_study_alias(
+    subcommands: argparse._SubParsersAction[argparse.ArgumentParser],
+    name: str,
+    help_text: str,
+) -> None:
+    command = subcommands.add_parser(name, help=help_text)
+    command.add_argument("input_path", type=Path)
+    command.add_argument(
+        "--output-root",
+        type=Path,
+        default=study_protocol_cli.DEFAULT_OUTPUT_ROOT,
+    )
+    command.add_argument(
+        "--vault-root",
+        type=Path,
+        default=study_protocol_cli.DEFAULT_VAULT_ROOT,
+    )
 
 
 if __name__ == "__main__":
