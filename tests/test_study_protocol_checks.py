@@ -41,6 +41,7 @@ class StudyProtocolCheckTests(unittest.TestCase):
                 "answer_page_contains_answers",
                 "knowledge_note_valid",
                 "pending_items_are_uncertain",
+                "source_photos_are_uncertain",
                 "training_questions_present",
                 "difficulty_mix_valid",
                 "printable_path_present",
@@ -85,6 +86,22 @@ class StudyProtocolCheckTests(unittest.TestCase):
         row = next(row for row in rows if row.code == "pending_items_are_uncertain")
         self.assertFalse(row.passed)
 
+    def test_pending_source_photo_must_be_uncertain(self):
+        training = daily_training()
+        rows = check_wrong_question_training(
+            replace(
+                training,
+                uncertain_items=("数学 角关系计算 审题漏条件 待确认",),
+            ),
+            "错题分析训练卷",
+            "参考答案",
+            "wrong.html",
+            "answers.html",
+        )
+
+        row = next(row for row in rows if row.code == "source_photos_are_uncertain")
+        self.assertFalse(row.passed)
+
     def test_unknown_color_must_be_uncertain(self):
         training = daily_training()
         unknown = _unknown_color_cluster(training.clusters[0])
@@ -109,6 +126,7 @@ class StudyProtocolCheckTests(unittest.TestCase):
                 uncertain_items=(
                     "科学 概念识别 待确认：绿色贴纸不属于红黄蓝规则",
                     "数学 角关系计算 审题漏条件 待确认",
+                    "photo-004 unclear-subject-green-mark.jpg 学科待确认",
                 ),
             ),
             "错题分析训练卷",

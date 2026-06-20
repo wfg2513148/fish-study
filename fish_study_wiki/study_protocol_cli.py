@@ -54,6 +54,18 @@ def run_wrong(
         ("answer_html", result.answer_html),
         ("obsidian_note", result.obsidian_note),
         *tuple(("event_note", path) for path in result.event_notes),
+        *tuple(
+            (f"{output.subject}_student_html", output.student_html)
+            for output in result.subject_outputs
+        ),
+        *tuple(
+            (f"{output.subject}_answer_html", output.answer_html)
+            for output in result.subject_outputs
+        ),
+        *tuple(
+            (f"{output.subject}_knowledge_markdown", output.knowledge_markdown)
+            for output in result.subject_outputs
+        ),
     )
     return 0
 

@@ -18,6 +18,9 @@ class StudyProtocolModelTests(unittest.TestCase):
         self.assertEqual(training.task_type, "wrong_question_training")
         self.assertEqual(training.date, "2026-06-19")
         self.assertEqual(training.clusters[0].diagnosis.sticker_color, "red")
+        self.assertEqual(len(training.source_photos), 4)
+        self.assertEqual(training.source_photos[0].subject, "科学")
+        self.assertEqual(training.clusters[0].source_photo_ids, ("photo-001",))
         self.assertEqual(
             training.clusters[0].diagnosis.visual_mark.color_normalized,
             "red",
@@ -135,6 +138,66 @@ class StudyProtocolModelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             load_wrong_question_training(_write_json(data))
 
+    def test_duplicate_source_photo_id_fails(self):
+        data = _sample_training()
+        data["source_photos"] = [
+            _photo("photo-001", "数学"),
+            _photo("photo-001", "数学"),
+        ]
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_unknown_source_photo_reference_fails(self):
+        data = _sample_training()
+        data["source_photos"] = [_photo("photo-001", "数学")]
+        data["clusters"][0]["source_photo_ids"] = ["missing-photo"]
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_unconfirmed_source_photo_reference_fails(self):
+        data = _sample_training()
+        data["source_photos"] = [
+            _photo(
+                "photo-001",
+                "unknown",
+                confidence="low",
+                status="needs_confirmation",
+            )
+        ]
+        data["clusters"][0]["subject"] = "数学"
+        data["clusters"][0]["source_photo_ids"] = ["photo-001"]
+        data["uncertain_items"] = ["photo-001 学科待确认"]
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_source_photo_subject_must_match_cluster_subject(self):
+        data = _sample_training()
+        data["source_photos"] = [_photo("photo-001", "数学")]
+        data["clusters"][0]["subject"] = "科学"
+        data["clusters"][0]["source_photo_ids"] = ["photo-001"]
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_pending_source_photo_must_be_uncertain(self):
+        data = _sample_training()
+        data["source_photos"] = [
+            _photo(
+                "photo-004",
+                "unknown",
+                confidence="low",
+                status="needs_confirmation",
+            )
+        ]
+        data["clusters"][0]["source_photo_ids"] = []
+        data["uncertain_items"] = []
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
     def test_nested_non_object_fails_with_value_error(self):
         data = _sample_training()
         data["clusters"][0]["diagnosis"] = None
@@ -242,6 +305,22 @@ def _write_json(data):
 
 
 _TEMP_DIRS = []
+
+
+def _photo(
+    photo_id: str,
+    subject: str,
+    confidence: str = "high",
+    status: str = "recognized",
+):
+    return {
+        "photo_id": photo_id,
+        "label_or_filename": f"{photo_id}.jpg",
+        "subject": subject,
+        "confidence": confidence,
+        "evidence": "测试照片证据。",
+        "status": status,
+    }
 
 
 if __name__ == "__main__":

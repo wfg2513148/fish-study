@@ -14,6 +14,8 @@ CONFIDENCE_VALUES = {"high", "medium", "low"}
 CONFIRMATION_STATUSES = {"auto", "needs_confirmation", "confirmed", "excluded"}
 DIFFICULTY_LEVELS = {"basic", "standard", "variant", "challenge"}
 COMPLETION_STATUSES = {"completed", "overtime", "unfinished"}
+PHOTO_STATUSES = {"recognized", "needs_confirmation", "excluded"}
+PHOTO_SUBJECTS = {"数学", "科学", "英语", "unknown"}
 PRIMARY_REASONS_BY_COLOR = {
     "red": "不会",
     "yellow": "马虎",
@@ -68,6 +70,16 @@ class VisualMark:
 
 
 @dataclass(frozen=True)
+class SourcePhoto:
+    photo_id: str
+    label_or_filename: str
+    subject: str
+    confidence: str
+    evidence: str
+    status: str
+
+
+@dataclass(frozen=True)
 class TrainingQuestion:
     prompt: str
     difficulty: str
@@ -85,6 +97,7 @@ class AnalysisCluster:
     matched_knowledge: tuple[KnowledgeMatch, ...]
     training_questions: tuple[TrainingQuestion, ...]
     difficulty_mix: tuple[str, ...]
+    source_photo_ids: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -94,6 +107,7 @@ class WrongQuestionTraining:
     source_batch: str
     clusters: tuple[AnalysisCluster, ...]
     uncertain_items: tuple[str, ...]
+    source_photos: tuple[SourcePhoto, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -130,15 +144,23 @@ class WeeklyReviewSource:
 def load_wrong_question_training(path: Path | str) -> WrongQuestionTraining:
     data = _load_json(path)
     _require_task_type(data, "wrong_question_training")
+    source_photos = tuple(
+        _source_photo(item)
+        for item in _list(data.get("source_photos", []), "source_photos")
+    )
+    clusters = tuple(
+        _analysis_cluster(item)
+        for item in _list(data.get("clusters", []), "clusters")
+    )
+    uncertain_items = _string_tuple(data.get("uncertain_items", []))
+    _validate_source_photos(source_photos, clusters, uncertain_items)
     return WrongQuestionTraining(
         task_type=data["task_type"],
         date=_iso_date(data.get("date", "")),
         source_batch=str(data.get("source_batch", "")),
-        clusters=tuple(
-            _analysis_cluster(item)
-            for item in _list(data.get("clusters", []), "clusters")
-        ),
-        uncertain_items=_string_tuple(data.get("uncertain_items", [])),
+        clusters=clusters,
+        uncertain_items=uncertain_items,
+        source_photos=source_photos,
     )
 
 
@@ -267,6 +289,18 @@ def _training_question(data: dict[str, Any]) -> TrainingQuestion:
     )
 
 
+def _source_photo(data: dict[str, Any]) -> SourcePhoto:
+    data = _object(data, "source photo")
+    return SourcePhoto(
+        photo_id=str(data.get("photo_id", "")),
+        label_or_filename=str(data.get("label_or_filename", "")),
+        subject=_known_value("subject", data.get("subject", ""), PHOTO_SUBJECTS),
+        confidence=_known_value("confidence", data.get("confidence", ""), CONFIDENCE_VALUES),
+        evidence=str(data.get("evidence", "")),
+        status=_known_value("status", data.get("status", ""), PHOTO_STATUSES),
+    )
+
+
 def _analysis_cluster(data: dict[str, Any]) -> AnalysisCluster:
     data = _object(data, "analysis cluster")
     return AnalysisCluster(
@@ -285,6 +319,7 @@ def _analysis_cluster(data: dict[str, Any]) -> AnalysisCluster:
             _known_value("difficulty", item, DIFFICULTY_LEVELS)
             for item in _list(data.get("difficulty_mix", []), "difficulty_mix")
         ),
+        source_photo_ids=_string_tuple(data.get("source_photo_ids", [])),
     )
 
 
@@ -415,6 +450,62 @@ def _validate_visual_mark_mapping(
     if visual_mark.color_normalized == "unknown":
         if visual_mark.confidence == "high":
             raise ValueError("unknown visual color cannot have high confidence")
+
+
+def _validate_source_photos(
+    source_photos: tuple[SourcePhoto, ...],
+    clusters: tuple[AnalysisCluster, ...],
+    uncertain_items: tuple[str, ...],
+) -> None:
+    by_id: dict[str, SourcePhoto] = {}
+    for photo in source_photos:
+        if not photo.photo_id.strip():
+            raise ValueError("source photo photo_id must not be empty")
+        if photo.photo_id in by_id:
+            raise ValueError(f"duplicate source photo id {photo.photo_id!r}")
+        by_id[photo.photo_id] = photo
+        if _photo_requires_confirmation(photo) and not _photo_is_uncertain(
+            photo,
+            uncertain_items,
+        ):
+            raise ValueError(
+                f"source photo {photo.photo_id!r} needs confirmation "
+                "but is missing from uncertain_items"
+            )
+
+    for cluster in clusters:
+        for photo_id in cluster.source_photo_ids:
+            photo = by_id.get(photo_id)
+            if photo is None:
+                raise ValueError(f"unknown source photo id {photo_id!r}")
+            if photo.status != "recognized":
+                raise ValueError(
+                    f"cluster {cluster.subject} references unconfirmed photo {photo_id!r}"
+                )
+            if photo.subject != cluster.subject:
+                raise ValueError(
+                    f"cluster subject {cluster.subject!r} does not match "
+                    f"source photo {photo_id!r} subject {photo.subject!r}"
+                )
+
+
+def _photo_requires_confirmation(photo: SourcePhoto) -> bool:
+    return (
+        photo.status == "needs_confirmation"
+        or photo.subject == "unknown"
+        or photo.confidence in {"medium", "low"}
+    )
+
+
+def _photo_is_uncertain(
+    photo: SourcePhoto,
+    uncertain_items: tuple[str, ...],
+) -> bool:
+    tokens = (photo.photo_id, photo.label_or_filename)
+    for item in uncertain_items:
+        if any(token and token in item for token in tokens):
+            return True
+    return False
 
 
 def _known_secondary_reason(value: str) -> str:

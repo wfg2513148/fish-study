@@ -7,6 +7,7 @@ from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
     DIFFICULTY_LEVELS,
     KnowledgeMatch,
+    SourcePhoto,
     STICKER_COLORS,
     WeeklyReviewSource,
     WrongQuestionTraining,
@@ -35,6 +36,7 @@ def check_wrong_question_training(
         _answer_page_contains_answers(answer_output),
         _valid_knowledge_notes(training.clusters),
         _pending_items_are_uncertain(training.clusters, training.uncertain_items),
+        _source_photos_are_uncertain(training.source_photos, training.uncertain_items),
         _training_questions_present(training.clusters),
         _difficulty_mix_valid(training.clusters),
         _printable_path_present(printable_path),
@@ -122,6 +124,27 @@ def _pending_items_are_uncertain(
             "待确认诊断已隔离"
             if not missing
             else f"以下待确认诊断未进入待确认项: {', '.join(missing)}"
+        ),
+    )
+
+
+def _source_photos_are_uncertain(
+    source_photos: tuple[SourcePhoto, ...],
+    uncertain_items: tuple[str, ...],
+) -> CheckRow:
+    missing = tuple(
+        photo.photo_id
+        for photo in source_photos
+        if _photo_requires_confirmation(photo)
+        and not any(_mentions_photo(item, photo) for item in uncertain_items)
+    )
+    return CheckRow(
+        passed=not missing,
+        code="source_photos_are_uncertain",
+        message=(
+            "待确认照片已隔离"
+            if not missing
+            else f"以下待确认照片未进入待确认项: {', '.join(missing)}"
         ),
     )
 
@@ -235,6 +258,25 @@ def _requires_confirmation(cluster: AnalysisCluster) -> bool:
     return (
         diagnosis.confidence in {"medium", "low"}
         or diagnosis.confirmation_status == "needs_confirmation"
+    )
+
+
+def _photo_requires_confirmation(photo: SourcePhoto) -> bool:
+    return (
+        photo.status == "needs_confirmation"
+        or photo.subject == "unknown"
+        or photo.confidence in {"medium", "low"}
+    )
+
+
+def _mentions_photo(uncertain_item: str, photo: SourcePhoto) -> bool:
+    text = uncertain_item.strip()
+    return bool(
+        text
+        and (
+            photo.photo_id in text
+            or (photo.label_or_filename and photo.label_or_filename in text)
+        )
     )
 
 

@@ -1,11 +1,11 @@
 ---
 name: fish-study-photo-workflow
-description: Use when a parent or student uploads wrong-question photos in Codex and asks for knowledge points, root-cause analysis, practice questions, or a daily wrong-question training sheet. Handles visual color marks, stickers, marker circles/underlines, Fish Study JSON, CLI execution, and local file delivery.
+description: Use when a parent or student uploads one or more wrong-question photos in Codex and asks for knowledge points, root-cause analysis, practice questions, or a daily wrong-question training sheet. Handles multi-photo subject detection, visual color marks, stickers, marker circles/underlines, Fish Study JSON, CLI execution, and local file delivery.
 ---
 
 # Fish Study Photo Workflow
 
-Turn marked wrong-question photos into Fish Study training outputs while keeping the user path simple: the parent or student uploads photos and says one sentence such as “帮我生成错题知识点和测试题”.
+Turn marked wrong-question photos into Fish Study training outputs while keeping the user path simple: the parent or student uploads one or more photos and says one sentence such as “帮我生成错题知识点和测试题”.
 
 ## Boundary
 
@@ -25,6 +25,8 @@ python3 -m fish_study_wiki.cli study-context
 
 3. Read each uploaded photo visually:
    - transcribe the wrong question enough to identify subject, problem type, and knowledge point;
+   - assign a stable `photo_id` such as `photo-001`;
+   - infer the subject for that photo: `数学`, `科学`, `英语`, or `unknown`;
    - inspect visible marks near each question;
    - record the mark color, mark type, and visual evidence.
 4. Normalize colors:
@@ -33,13 +35,55 @@ python3 -m fish_study_wiki.cli study-context
    - blue -> `blue` -> `时间不够`;
    - green, orange, purple, mixed colors, glare, unclear colors, or no clear mark -> `unknown` and `待确认`.
 5. Generate `wrong_question_training` JSON under `outputs/photo-workflow/YYYY-MM-DD-wrong-question-training.json`.
+   - Add top-level `source_photos`.
+   - Add `source_photo_ids` to each analysis cluster.
+   - Group clusters by subject. Do not mix different subjects into one cluster.
+   - Put unknown-subject or low-confidence photos into `uncertain_items`; do not reference them from clusters.
 6. Run:
 
 ```bash
 python3 -m fish_study_wiki.cli study-wrong outputs/photo-workflow/YYYY-MM-DD-wrong-question-training.json
 ```
 
-7. Return the generated student sheet, answer sheet, and Obsidian note paths as Markdown absolute local file links.
+7. Return the generated aggregate sheet, per-subject sheets, per-subject knowledge notes, answer sheets, and Obsidian note paths as Markdown absolute local file links.
+
+## Multi-Photo Subject JSON
+
+Use `source_photos` whenever the user uploads photos:
+
+```json
+{
+  "source_photos": [
+    {
+      "photo_id": "photo-001",
+      "label_or_filename": "science-red-sticker.jpg",
+      "subject": "科学",
+      "confidence": "high",
+      "evidence": "题干包含原子结构、质子、中子和电子。",
+      "status": "recognized"
+    },
+    {
+      "photo_id": "photo-002",
+      "label_or_filename": "unclear-green-mark.jpg",
+      "subject": "unknown",
+      "confidence": "low",
+      "evidence": "只拍到局部题干和绿色标注，无法稳定判断学科。",
+      "status": "needs_confirmation"
+    }
+  ],
+  "uncertain_items": [
+    "photo-002 unclear-green-mark.jpg 学科待确认"
+  ]
+}
+```
+
+Rules:
+
+- `subject`: `数学`, `科学`, `英语`, or `unknown`.
+- `status`: `recognized`, `needs_confirmation`, or `excluded`.
+- Any `unknown`, `medium`, `low`, or `needs_confirmation` photo must appear in `uncertain_items`.
+- `source_photo_ids` may reference only recognized photos from the same subject as the cluster.
+- Daily outputs are “分学科训练卷”, not formal “模拟试卷”.
 
 ## Visual Mark JSON
 
@@ -83,7 +127,7 @@ Keep the final response short:
 
 - Say which subjects and knowledge points were found.
 - Say which items need confirmation because the photo or color mark was unclear.
-- Link the student sheet and answer sheet.
+- Link the aggregate student sheet and the per-subject student sheets, answer sheets, and knowledge notes.
 - Do not expose the JSON unless the user asks.
 
 Use absolute Markdown links:

@@ -40,15 +40,15 @@
 
 ### 第二步：上传照片并说一句话
 
-在 Codex Desktop 里上传错题照片，然后只说：
+在 Codex Desktop 里上传一张或多张错题照片，然后只说：
 
 ```text
 帮我生成错题知识点和测试题
 ```
 
-Codex 会自动读取当前知识库范围、识别照片里的红黄蓝标注、整理错因、生成训练卷和答案页。家长不需要写 JSON，也不需要运行命令。
+Codex 会自动读取当前知识库范围，识别每张照片属于数学、科学还是英语，再识别照片里的红黄蓝标注，按学科分别整理错因、生成训练卷、答案页和知识点讲解。家长不需要写 JSON，也不需要运行命令。
 
-如果 Codex 看不清题目、颜色或知识点，它应该把这部分列为“待确认”，不要硬猜。
+如果 Codex 看不清题目、颜色、学科或知识点，它应该把这部分列为“待确认”，不要硬猜。
 
 ### 第三步：拿到学生训练卷和答案页
 
@@ -56,9 +56,12 @@ Codex 处理成功后会输出这些文件路径：
 
 - 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
 - 家长答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
+- 分学科学生训练卷：`outputs/YYYY-MM-DD/math-training.html`、`science-training.html`、`english-training.html`
+- 分学科答案页：`outputs/YYYY-MM-DD/math-training-answers.html`、`science-training-answers.html`、`english-training-answers.html`
+- 分学科知识点讲解：`outputs/YYYY-MM-DD/math-knowledge.md`、`science-knowledge.md`、`english-knowledge.md`
 - Obsidian 错题记录：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
 
-学生只看训练卷：
+一次上传多科照片时，可以只打印当天需要练的那一科。学生只看训练卷：
 
 ![学生训练卷截图](assets/parent-guide/wrong-training-student.png)
 
@@ -111,6 +114,9 @@ $FISH_STUDY_VAULT_ROOT/40-复习计划/YYYY-MM-DD.md
 ```text
 outputs/YYYY-MM-DD/wrong-question-training.html
 outputs/YYYY-MM-DD/weekly-review.html
+outputs/YYYY-MM-DD/math-training.html
+outputs/YYYY-MM-DD/science-training.html
+outputs/YYYY-MM-DD/english-training.html
 ```
 
 ### 家长批改用
@@ -120,6 +126,9 @@ outputs/YYYY-MM-DD/weekly-review.html
 ```text
 outputs/YYYY-MM-DD/wrong-question-training-answers.html
 outputs/YYYY-MM-DD/weekly-review-answers.html
+outputs/YYYY-MM-DD/math-training-answers.html
+outputs/YYYY-MM-DD/science-training-answers.html
+outputs/YYYY-MM-DD/english-training-answers.html
 ```
 
 ### 长期跟踪用
@@ -144,6 +153,7 @@ $FISH_STUDY_VAULT_ROOT/00-入口/Fish Study 首页.md
 
 - 照片看不清题目。
 - 错题学科不在当前 3 套资料里。
+- 一批照片里有照片无法判断学科。
 - Codex 找不到明确知识点。
 - 孩子说“我不是不会，是没看清题”。
 - 训练卷里出现了答案、解析、参考答案。

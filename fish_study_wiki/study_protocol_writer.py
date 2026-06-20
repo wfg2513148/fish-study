@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from fish_study_wiki import settings
@@ -14,6 +14,7 @@ from fish_study_wiki.study_protocol_models import (
 )
 from fish_study_wiki.study_protocol_render import (
     COLOR_LABELS,
+    render_subject_knowledge_markdown,
     render_training_answer_html,
     render_training_student_html,
     render_weekly_answer_html,
@@ -24,6 +25,19 @@ from fish_study_wiki.study_protocol_render import (
 
 DEFAULT_OUTPUT_ROOT = Path("outputs")
 DEFAULT_VAULT_ROOT = settings.VAULT_ROOT
+SUBJECT_SLUGS = {
+    "数学": "math",
+    "科学": "science",
+    "英语": "english",
+}
+
+
+@dataclass(frozen=True)
+class SubjectTrainingWriteResult:
+    subject: str
+    student_html: Path
+    answer_html: Path
+    knowledge_markdown: Path
 
 
 @dataclass(frozen=True)
@@ -32,6 +46,7 @@ class TrainingWriteResult:
     answer_html: Path
     obsidian_note: Path
     event_notes: tuple[Path, ...]
+    subject_outputs: tuple[SubjectTrainingWriteResult, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -53,6 +68,7 @@ def write_training_outputs(
     answer_html = output_dir / "wrong-question-training-answers.html"
     student_html.write_text(render_training_student_html(training), encoding="utf-8")
     answer_html.write_text(render_training_answer_html(training), encoding="utf-8")
+    subject_outputs = _write_subject_training_outputs(training, output_dir)
 
     obsidian_note = _wrong_question_path(vault_root, training.date)
     obsidian_note.parent.mkdir(parents=True, exist_ok=True)
@@ -72,6 +88,7 @@ def write_training_outputs(
         answer_html,
         obsidian_note,
         tuple(sorted(event_notes)),
+        subject_outputs,
     )
 
 
@@ -106,6 +123,88 @@ def _dated_output_dir(output_root: Path | str, plan_date: str) -> Path:
     output_dir = Path(output_root) / plan_date
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
+
+
+def _write_subject_training_outputs(
+    training: WrongQuestionTraining,
+    output_dir: Path,
+) -> tuple[SubjectTrainingWriteResult, ...]:
+    outputs = []
+    for subject in _training_subjects(training.clusters):
+        subject_training = _subject_training(training, subject)
+        slug = _subject_slug(subject)
+        student_html = output_dir / f"{slug}-training.html"
+        answer_html = output_dir / f"{slug}-training-answers.html"
+        knowledge_markdown = output_dir / f"{slug}-knowledge.md"
+        student_html.write_text(
+            render_training_student_html(subject_training),
+            encoding="utf-8",
+        )
+        answer_html.write_text(
+            render_training_answer_html(subject_training),
+            encoding="utf-8",
+        )
+        knowledge_markdown.write_text(
+            render_subject_knowledge_markdown(training, subject),
+            encoding="utf-8",
+        )
+        outputs.append(
+            SubjectTrainingWriteResult(
+                subject=subject,
+                student_html=student_html,
+                answer_html=answer_html,
+                knowledge_markdown=knowledge_markdown,
+            )
+        )
+    return tuple(outputs)
+
+
+def _training_subjects(clusters: tuple[AnalysisCluster, ...]) -> tuple[str, ...]:
+    subjects = []
+    for cluster in clusters:
+        if cluster.subject not in subjects:
+            subjects.append(cluster.subject)
+    return tuple(subjects)
+
+
+def _subject_training(
+    training: WrongQuestionTraining,
+    subject: str,
+) -> WrongQuestionTraining:
+    clusters = tuple(cluster for cluster in training.clusters if cluster.subject == subject)
+    photo_ids = {
+        photo_id
+        for cluster in clusters
+        for photo_id in cluster.source_photo_ids
+    }
+    return replace(
+        training,
+        clusters=clusters,
+        uncertain_items=_subject_uncertain_items(training.uncertain_items, subject, photo_ids),
+        source_photos=tuple(
+            photo
+            for photo in training.source_photos
+            if photo.subject == subject or photo.photo_id in photo_ids
+        ),
+    )
+
+
+def _subject_uncertain_items(
+    uncertain_items: tuple[str, ...],
+    subject: str,
+    photo_ids: set[str],
+) -> tuple[str, ...]:
+    return tuple(
+        item
+        for item in uncertain_items
+        if subject in item or any(photo_id in item for photo_id in photo_ids)
+    )
+
+
+def _subject_slug(subject: str) -> str:
+    if subject in SUBJECT_SLUGS:
+        return SUBJECT_SLUGS[subject]
+    return safe_markdown_filename(subject).removesuffix(".md").lower()
 
 
 def _default_graph_path(

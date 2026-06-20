@@ -2,10 +2,45 @@
   "task_type": "wrong_question_training",
   "date": "2026-06-19",
   "source_batch": "2026-06-19-evening-wrong-questions",
+  "source_photos": [
+    {
+      "photo_id": "photo-001",
+      "label_or_filename": "science-atom-red-sticker.jpg",
+      "subject": "科学",
+      "confidence": "high",
+      "evidence": "题面包含原子结构模型、质子、中子和电子。",
+      "status": "recognized"
+    },
+    {
+      "photo_id": "photo-002",
+      "label_or_filename": "math-angle-yellow-circle.jpg",
+      "subject": "数学",
+      "confidence": "high",
+      "evidence": "题面包含平行线、截线和角度关系。",
+      "status": "recognized"
+    },
+    {
+      "photo_id": "photo-003",
+      "label_or_filename": "math-angle-blue-underline.jpg",
+      "subject": "数学",
+      "confidence": "high",
+      "evidence": "题面包含角度求值和限时完成标记。",
+      "status": "recognized"
+    },
+    {
+      "photo_id": "photo-004",
+      "label_or_filename": "unclear-subject-green-mark.jpg",
+      "subject": "unknown",
+      "confidence": "low",
+      "evidence": "照片只看到绿色标注和局部题干，无法稳定判断学科。",
+      "status": "needs_confirmation"
+    }
+  ],
   "clusters": [
     {
       "subject": "科学",
       "problem_type": "概念识别",
+      "source_photo_ids": ["photo-001"],
       "diagnosis": {
         "sticker_color": "Red",
         "primary_reason": "不会",
@@ -61,6 +96,7 @@
     {
       "subject": "数学",
       "problem_type": "角关系计算",
+      "source_photo_ids": ["photo-002"],
       "diagnosis": {
         "sticker_color": "yellow",
         "primary_reason": "马虎",
@@ -100,6 +136,7 @@
     {
       "subject": "数学",
       "problem_type": "限时计算",
+      "source_photo_ids": ["photo-003"],
       "diagnosis": {
         "sticker_color": "blue",
         "primary_reason": "时间不够",
@@ -137,5 +174,8 @@
       "difficulty_mix": ["standard", "standard", "variant"]
     }
   ],
-  "uncertain_items": ["数学 角关系计算 审题漏条件 待确认"]
+  "uncertain_items": [
+    "数学 角关系计算 审题漏条件 待确认",
+    "photo-004 unclear-subject-green-mark.jpg 学科待确认：绿色标注和局部题干无法稳定判断学科"
+  ]
 }

@@ -6,6 +6,7 @@ from html import escape
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
     KnowledgeMatch,
+    SourcePhoto,
     TrainingQuestion,
     TrainingResult,
     WeeklyReviewSource,
@@ -74,6 +75,28 @@ def render_training_answer_html(training: WrongQuestionTraining) -> str:
 </section>
 """,
     )
+
+
+def render_subject_knowledge_markdown(
+    training: WrongQuestionTraining,
+    subject: str,
+) -> str:
+    clusters = tuple(cluster for cluster in training.clusters if cluster.subject == subject)
+    photo_by_id = {photo.photo_id: photo for photo in training.source_photos}
+    return f"""# {subject} 错题知识点讲解
+
+## 照片来源
+
+{_subject_source_photo_lines(clusters, photo_by_id)}
+
+## 知识点与根因
+
+{_subject_cluster_knowledge_lines(clusters, photo_by_id)}
+
+## 待确认项
+
+{_subject_uncertain_lines(training.uncertain_items, subject, clusters)}
+"""
 
 
 def render_weekly_review_markdown(source: WeeklyReviewSource) -> str:
@@ -285,6 +308,89 @@ def _training_question_answers(questions: tuple[TrainingQuestion, ...]) -> str:
             "</li>"
         )
     return "\n".join(rows)
+
+
+def _subject_source_photo_lines(
+    clusters: tuple[AnalysisCluster, ...],
+    photo_by_id: dict[str, SourcePhoto],
+) -> str:
+    photo_ids = _cluster_source_photo_ids(clusters)
+    if not photo_ids:
+        return "- 暂无明确照片来源。"
+    lines = []
+    for photo_id in photo_ids:
+        photo = photo_by_id.get(photo_id)
+        if photo is None:
+            continue
+        lines.append(
+            f"- {photo.photo_id}：{photo.label_or_filename}，"
+            f"学科置信度 {photo.confidence}，依据：{photo.evidence}"
+        )
+    return "\n".join(lines) if lines else "- 暂无明确照片来源。"
+
+
+def _subject_cluster_knowledge_lines(
+    clusters: tuple[AnalysisCluster, ...],
+    photo_by_id: dict[str, SourcePhoto],
+) -> str:
+    if not clusters:
+        return "- 暂无该学科训练内容。"
+    lines = []
+    for index, cluster in enumerate(clusters, start=1):
+        diagnosis = cluster.diagnosis
+        lines.extend(
+            (
+                f"### {index}. {cluster.problem_type}",
+                "",
+                f"- 照片：{_cluster_source_photo_text(cluster, photo_by_id)}",
+                f"- 错因：{COLOR_LABELS.get(diagnosis.sticker_color, diagnosis.sticker_color)}，"
+                f"{diagnosis.primary_reason}/{diagnosis.secondary_reason}",
+                f"- 依据：{diagnosis.evidence}",
+                f"- 知识点：{_subject_knowledge_links(cluster.matched_knowledge)}",
+                f"- 训练建议：{COLOR_STRATEGIES.get(diagnosis.sticker_color, '先复述知识点，再完成同类训练。')}",
+                f"- 难度梯度：{'/'.join(_difficulty_label(item) for item in cluster.difficulty_mix)}",
+                "",
+            )
+        )
+    return "\n".join(lines).strip()
+
+
+def _subject_uncertain_lines(
+    uncertain_items: tuple[str, ...],
+    subject: str,
+    clusters: tuple[AnalysisCluster, ...],
+) -> str:
+    photo_ids = set(_cluster_source_photo_ids(clusters))
+    lines = [
+        item
+        for item in uncertain_items
+        if subject in item or any(photo_id in item for photo_id in photo_ids)
+    ]
+    return "\n".join(f"- {item}" for item in lines) if lines else "- 暂无。"
+
+
+def _cluster_source_photo_ids(clusters: tuple[AnalysisCluster, ...]) -> tuple[str, ...]:
+    ordered: list[str] = []
+    for cluster in clusters:
+        for photo_id in cluster.source_photo_ids:
+            if photo_id not in ordered:
+                ordered.append(photo_id)
+    return tuple(ordered)
+
+
+def _cluster_source_photo_text(
+    cluster: AnalysisCluster,
+    photo_by_id: dict[str, SourcePhoto],
+) -> str:
+    labels = []
+    for photo_id in cluster.source_photo_ids:
+        photo = photo_by_id.get(photo_id)
+        labels.append(photo.label_or_filename if photo else photo_id)
+    return "；".join(labels) if labels else "未记录"
+
+
+def _subject_knowledge_links(matches: tuple[KnowledgeMatch, ...]) -> str:
+    return "；".join(_md_link(match.note) for match in matches) or "[[待定位]]"
 
 
 def _weekly_knowledge_counts(clusters: tuple[AnalysisCluster, ...]) -> Counter[str]:

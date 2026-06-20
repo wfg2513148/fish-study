@@ -25,6 +25,12 @@ class StudyProtocolCliTests(unittest.TestCase):
             expected = (
                 root / "outputs" / "2026-06-19" / "wrong-question-training.html",
                 root / "outputs" / "2026-06-19" / "wrong-question-training-answers.html",
+                root / "outputs" / "2026-06-19" / "science-training.html",
+                root / "outputs" / "2026-06-19" / "science-training-answers.html",
+                root / "outputs" / "2026-06-19" / "science-knowledge.md",
+                root / "outputs" / "2026-06-19" / "math-training.html",
+                root / "outputs" / "2026-06-19" / "math-training-answers.html",
+                root / "outputs" / "2026-06-19" / "math-knowledge.md",
                 root / "vault" / "20-错题归因" / "2026-06-19.md",
             )
             self.assertEqual(status, 0, stderr)

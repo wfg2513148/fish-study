@@ -48,8 +48,32 @@ class StudyProtocolWriterTests(unittest.TestCase):
             self.assertTrue(result.student_html.exists())
             self.assertTrue(result.answer_html.exists())
             self.assertTrue(result.obsidian_note.exists())
+            self.assertEqual(
+                [output.subject for output in result.subject_outputs],
+                ["科学", "数学"],
+            )
             self.assertTrue((root / "data" / "wiki" / "knowledge-graph.json").exists())
             self.assertIn("批改答案页", result.obsidian_note.read_text(encoding="utf-8"))
+            subject_files = {
+                path.name
+                for output in result.subject_outputs
+                for path in (
+                    output.student_html,
+                    output.answer_html,
+                    output.knowledge_markdown,
+                )
+            }
+            self.assertEqual(
+                subject_files,
+                {
+                    "science-training.html",
+                    "science-training-answers.html",
+                    "science-knowledge.md",
+                    "math-training.html",
+                    "math-training-answers.html",
+                    "math-knowledge.md",
+                },
+            )
 
     def test_training_student_file_has_no_answer_markers(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -65,6 +89,28 @@ class StudyProtocolWriterTests(unittest.TestCase):
             for marker in ANSWER_MARKERS:
                 self.assertNotIn(marker, student_text)
             self.assertIn("答案", answer_text)
+
+    def test_subject_training_outputs_are_subject_scoped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = write_training_outputs(
+                training_sample(),
+                output_root=root / "outputs",
+                vault_root=root / "vault",
+            )
+
+            by_subject = {output.subject: output for output in result.subject_outputs}
+            math_text = by_subject["数学"].student_html.read_text(encoding="utf-8")
+            science_text = by_subject["科学"].student_html.read_text(encoding="utf-8")
+            math_knowledge = by_subject["数学"].knowledge_markdown.read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("平行线", math_text)
+            self.assertNotIn("原子结构", math_text)
+            self.assertIn("原子结构", science_text)
+            self.assertNotIn("平行线角关系", science_text)
+            self.assertIn("photo-002", math_knowledge)
+            self.assertIn("知识点与根因", math_knowledge)
 
     def test_training_appends_event_blocks_to_knowledge_notes_once(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -6,6 +6,7 @@ from fish_study_wiki.study_protocol_models import (
     load_wrong_question_training,
 )
 from fish_study_wiki.study_protocol_render import (
+    render_subject_knowledge_markdown,
     render_training_answer_html,
     render_training_student_html,
     render_weekly_answer_html,
@@ -52,6 +53,17 @@ class StudyProtocolRenderTests(unittest.TestCase):
         self.assertIn("掌握判断", html)
         self.assertIn("下一次难度建议", html)
         self.assertIn("原子核在中心", html)
+
+    def test_subject_knowledge_markdown_is_subject_scoped(self):
+        text = render_subject_knowledge_markdown(wrong_training(), "数学")
+
+        self.assertIn("# 数学 错题知识点讲解", text)
+        self.assertIn("知识点与根因", text)
+        self.assertIn("photo-002", text)
+        self.assertIn("[[第1章 1.2 同位角、内错角、同旁内角]]", text)
+        self.assertIn("审题漏条件", text)
+        self.assertNotIn("photo-001", text)
+        self.assertNotIn("原子结构模型", text)
 
     def test_weekly_review_markdown_contains_required_review_sections(self):
         text = render_weekly_review_markdown(weekly_source())
