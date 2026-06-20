@@ -8,7 +8,7 @@ Produce independent, print-ready exam papers that look like real school papers a
 
 ## Assumptions
 
-- The project root is `/Users/kwang/fish-study`.
+- The project root is the current Fish Study git checkout. Do not assume `/Users/kwang/fish-study`; confirm with `pwd` or the user's active workspace when needed.
 - Generated files live under `outputs/` and are not committed.
 - Source materials and copyrighted originals stay local and are not committed.
 - If a question needs a drawing or diagram, generate a real image with `gpt-image-2`; do not use placeholders.
@@ -86,7 +86,7 @@ Before responding:
 When sending generated files in the Codex conversation, use Markdown links with absolute local paths:
 
 ```md
-[math-grade7-mock-paper.pdf](/Users/kwang/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+[math-grade7-mock-paper.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
 ```
 
 Do not rely on plain paths, `127.0.0.1`, or `/mnt/data` first.

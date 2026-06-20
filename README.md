@@ -1,60 +1,178 @@
-# fish-study
+# Fish Study
 
-面向杭州初中学习场景的 Codex Desktop + Obsidian 本地学习工作流。
+这是一个给家长使用的本地学习辅助工具。
 
-## 当前目标
+它把 Codex Desktop、Obsidian 和本地教材资料连起来，用来做三件事：
 
-- 用拍照方式识别已贴红黄蓝标签的错题卷。
-- 根据错因、知识点、题型和历史训练结果生成可打印训练卷与独立答案页。
-- 日常数据分析静默写入 Obsidian，每周输出完整复盘报告和巩固测试。
-- 将初一、初二各学科知识点沉淀到独立 Obsidian vault，减少每次从 PDF/课件重新解析。
-- 原始教材、教辅、课件只保存在本地；GitHub 仓库只保存流程、索引、模板和可复用脚本。
+1. 根据孩子的错题照片，整理错因和知识点。
+2. 生成可以打印的学生训练卷和家长答案页。
+3. 把错题、知识点和复习计划长期记录到 Obsidian，方便每周复盘。
 
-家长使用说明见：`docs/parent-user-manual.md`
-真实试卷式模拟卷输出规范见：`docs/exam-paper-output.md`
+它不是自动判卷 App，也不是完整题库。看不清、不确定、没有资料的内容，应该先标为“待确认”，不要硬猜。
 
-## 常用指令
+## 现在能用哪些资料
 
-在 Codex Desktop 中上传照片后使用：
+当前已经整理好的资料范围是：
 
-- `帮我生成错题知识点和测试题`
-- `帮我生成本周错题复盘和巩固测试`
+| 年级 | 册别 | 学科 | 版本 | 知识点笔记 |
+|---|---|---|---|---:|
+| 七年级 | 下册 | 数学 | 浙教版 | 112 篇 |
+| 七年级 | 下册 | 科学 | 浙教版 | 84 篇 |
+| 七年级 | 下册 | 英语 | 人教版 | 53 篇 |
 
-对应 CLI：
+其他学科、七上、八下还没有完整接入。遇到这些内容时，不要让工具直接编知识点。
+
+## 适合谁用
+
+适合这样的家庭学习场景：
+
+- 家长愿意先和孩子一起看错题。
+- 家长能给错题贴一个简单颜色标签。
+- 希望把错题变成后续训练，而不是只讲一遍就结束。
+- 希望每周知道孩子反复错在哪里。
+
+不适合：
+
+- 直接把整本教材上传让工具出完整题库。
+- 让工具替代老师判卷。
+- 让工具在没有资料、照片模糊时强行分析。
+
+## 每天怎么用
+
+### 第 1 步：给错题贴颜色
+
+只贴一级原因，不需要分析太细。
+
+| 颜色 | 含义 | 怎么判断 |
+|---|---|---|
+| 红色 | 不会 | 知识点不会、方法不会、不会迁移 |
+| 黄色 | 马虎 | 审题漏条件、计算错、单位符号错、步骤写漏 |
+| 蓝色 | 时间不够 | 会做但慢、卡第一步、计算太久、时间分配不合理 |
+
+### 第 2 步：打开项目目录
+
+```bash
+cd /path/to/fish-study
+```
+
+### 第 3 步：先看当前知识库范围
 
 ```bash
 python3 -m fish_study_wiki.cli study-context
-python3 -m fish_study_wiki.study_protocol_cli wrong samples/wrong-question-training.json
-python3 -m fish_study_wiki.study_protocol_cli weekly-review samples/weekly-review-source.json
 ```
 
-颜色约定：
+把这段输出复制给 Codex Desktop，作为它分析照片前的上下文。
 
-- 红色：不会
-- 黄色：马虎
-- 蓝色：时间不够
+### 第 4 步：上传错题照片给 Codex
 
-学生训练卷不包含答案、参考答案、解析或解答；批改答案页单独保存。
+在 Codex Desktop 里说：
 
-需要输出独立模拟卷时，先按 `docs/exam-paper-output.md` 的标准生成 HTML，再导出自包含 PDF：图片必须嵌入 PDF，底部页码使用 `当前页/总页数`，交付时使用 Markdown 绝对路径文件链接。
+```text
+请基于当前 Fish Study 知识库上下文，分析这些贴了红黄蓝标签的错题。
+生成 wrong_question_training JSON。
+看不清或知识点不确定的题，不要猜，放入 uncertain_items。
+```
 
-## 本地目录
+生成的 JSON 可以参考：
 
-- 项目仓库：`/Users/kwang/fish-study`
-- Obsidian vault：`/Users/kwang/Downloads/obsidian/fish-study`
-- 原始下载资料：`/Users/kwang/fish-study/sources/raw`
-- 解压资料：`/Users/kwang/fish-study/sources/extracted`
+```text
+samples/wrong-question-training.json
+```
 
-## 初始化顺序
+### 第 5 步：生成训练卷和答案页
 
 ```bash
-scripts/download_sources.sh
-scripts/init_vault.sh
+python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 ```
 
-## Wiki 重建
+成功后会生成：
 
-资料 ZIP 已在 `sources/raw/` 后，按这个顺序重建索引、写入 Obsidian，并生成质量报告：
+- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
+- 家长答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
+- Obsidian 错题记录：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
+
+学生只看训练卷。答案页给家长批改，不要提前给孩子。
+
+## 每周怎么用
+
+每周做一次复盘，不需要每天做大报告。
+
+在 Codex Desktop 里说：
+
+```text
+请根据本周错题归因记录和训练结果，生成 weekly_review JSON。
+重点看反复知识点、红黄蓝错因分布、复测队列和下周优先级。
+```
+
+生成的 JSON 可以参考：
+
+```text
+samples/weekly-review-source.json
+```
+
+然后运行：
+
+```bash
+python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.json
+```
+
+成功后会生成：
+
+- 周复盘报告：`outputs/YYYY-MM-DD/weekly-review.md`
+- 周巩固测试卷：`outputs/YYYY-MM-DD/weekly-review.html`
+- 周巩固答案页：`outputs/YYYY-MM-DD/weekly-review-answers.html`
+- Obsidian 复习计划：`$FISH_STUDY_VAULT_ROOT/40-复习计划/YYYY-MM-DD.md`
+
+## 想生成正式模拟卷怎么办
+
+如果你想要“像真实试卷一样”的数学、科学、英语模拟卷，可以让 Codex 说清楚：
+
+```text
+请基于 Fish Study 当前资料，生成三科独立模拟卷。
+要求按真实试卷格式排版，涉及绘图的题必须使用 gpt-image-2。
+最终输出 PDF，图片必须嵌入 PDF，底部加 当前页/总页数 页码。
+```
+
+模拟卷输出规范见：
+
+- `docs/exam-paper-output.md`
+- `.codex/skills/fish-study-exam-paper/SKILL.md`
+
+在 Codex 会话里发送本地 PDF 时，使用 Markdown 文件链接：
+
+```md
+[math-grade7-mock-paper.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+```
+
+不要优先用 `127.0.0.1` 或 `/mnt/data`。
+
+## 常用命令
+
+看当前可用资料：
+
+```bash
+python3 -m fish_study_wiki.cli study-context
+```
+
+生成日常错题训练：
+
+```bash
+python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
+```
+
+生成每周复盘：
+
+```bash
+python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.json
+```
+
+检查知识库质量：
+
+```bash
+python3 -m fish_study_wiki.cli verify
+```
+
+重建资料索引和知识点：
 
 ```bash
 python3 -m fish_study_wiki.cli inventory
@@ -62,37 +180,46 @@ python3 -m fish_study_wiki.cli build
 python3 -m fish_study_wiki.cli verify
 ```
 
-兼容脚本仍可使用：
+## 文件都在哪里
 
-```bash
-scripts/rebuild_zip_inventories.py
-scripts/build_vault_indexes.py
-```
+| 内容 | 位置 |
+|---|---|
+| 项目仓库 | 当前 git clone 目录 |
+| Obsidian 知识库 | `$FISH_STUDY_VAULT_ROOT`，默认 `$HOME/Downloads/obsidian/fish-study` |
+| 原始 ZIP/PDF/课件 | `sources/raw` |
+| 解压后的资料 | `sources/extracted` |
+| 生成的训练卷/模拟卷 | `outputs` |
+| 知识库质量报告 | `reports/wiki-quality.md` |
 
-`verify` 会同时写入：
+## 新增资料怎么接入
 
-- `reports/wiki-quality.md`
-- `/Users/kwang/Downloads/obsidian/fish-study/00-入口/wiki-quality.md`
+新增资料时只接入本地可用的 ZIP，不提交原始文件。
 
-`build` 会同时写入本地知识图谱：
+1. 把 ZIP 放入 `sources/raw/`。
+2. 在 `data/sources/source-ledger.json` 增加一条记录。
+3. 运行 `python3 -m fish_study_wiki.cli inventory`。
+4. 运行 `python3 -m fish_study_wiki.cli build`。
+5. 运行 `python3 -m fish_study_wiki.cli verify`。
 
-- `data/wiki/knowledge-graph.json`
+更完整的流程见：
 
-质量报告覆盖初一、初二上下册 7 个学科的 28 个年级/册别/学科组合。当前没有本地资料的组合会标为 `missing_source`，不阻塞已下载资料的校验和重建。
-已生成的 `type: knowledge` 或旧 `type: source-index` 知识点笔记会保留正文和错题事件，只迁移 frontmatter，用于记录 `source_id`、`confidence`、`last_confirmed`、`lifecycle_status` 等生命周期元数据。
+- `docs/source-intake.md`
+- `docs/source-policy.md`
 
-## 增量资料接入
+## 重要原则
 
-新增资料时只接入本地可用的 ZIP，不提交原始文件：
+- 学生卷和答案页一定分开。
+- 红色错因先补基础，不要直接上难题。
+- 黄色错因重点练审题和检查习惯。
+- 蓝色错因重点练限时和解题路径。
+- 没资料、看不清、不确定，就不要猜。
+- 原始教材、教辅、课件、完整 PDF、完整图片扫描件不要提交到 GitHub。
 
-1. 将 ZIP 放入 `sources/raw/`。
-2. 在 `data/sources/source-ledger.json` 增加一条记录，填写年级、册别、学科、版本、本地路径和 SHA256。
-3. 运行 `python3 -m fish_study_wiki.cli inventory` 更新清单。
-4. 运行 `python3 -m fish_study_wiki.cli build` 写入知识点笔记和学科索引。
-5. 运行 `python3 -m fish_study_wiki.cli verify` 更新质量报告。
+## 更多说明
 
-更完整的流程见 `docs/source-intake.md`。
-
-## 版权边界
-
-本项目只为家庭学习本地使用。不要把教材、课件 ZIP、完整 PDF、完整图片扫描件或大段原文提交到 GitHub；可以提交目录索引、校验值、知识点摘要、知识图谱、错题归因结构和自编练习。
+- 家长使用手册：`docs/parent-user-manual.md`
+- Codex 错题学习工具说明：`docs/codex-study-task-usage.md`
+- AI 安装配置说明：`docs/ai-installation-setup.md`
+- 真实试卷式模拟卷输出规范：`docs/exam-paper-output.md`
+- 资料接入说明：`docs/source-intake.md`
+- 版权和资料边界：`docs/source-policy.md`

@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fish_study_wiki.source_ledger import load_sources, missing_matrix_entries
 
@@ -33,6 +34,35 @@ class SourceLedgerTests(unittest.TestCase):
             sources = load_sources(path)
 
         self.assertEqual(sources[0].key, "七年级/下册/数学")
+
+    def test_load_sources_resolves_relative_local_path_from_repo_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = root / "source-ledger.json"
+            path.write_text(
+                json.dumps(
+                    [
+                        {
+                            "source_id": "demo",
+                            "subject": "数学",
+                            "grade": "七年级",
+                            "volume": "下册",
+                            "version": "浙教版",
+                            "source_type": "courseware",
+                            "status": "available",
+                            "local_path": "sources/raw/demo.zip",
+                            "sha256": "abc",
+                        }
+                    ],
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            with patch("fish_study_wiki.source_ledger.settings.REPO_ROOT", root):
+                sources = load_sources(path)
+
+        self.assertEqual(str(root / "sources/raw/demo.zip"), sources[0].local_path)
 
     def test_missing_matrix_entries_reports_uncovered_subjects(self):
         matrix = [

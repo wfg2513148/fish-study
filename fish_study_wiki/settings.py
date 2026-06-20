@@ -1,8 +1,16 @@
+import os
 from pathlib import Path
 
 
-REPO_ROOT = Path("/Users/kwang/fish-study")
-VAULT_ROOT = Path("/Users/kwang/Downloads/obsidian/fish-study")
+REPO_ROOT = Path(
+    os.environ.get("FISH_STUDY_REPO_ROOT", Path(__file__).resolve().parents[1])
+).expanduser()
+VAULT_ROOT = Path(
+    os.environ.get(
+        "FISH_STUDY_VAULT_ROOT",
+        Path.home() / "Downloads" / "obsidian" / "fish-study",
+    )
+).expanduser()
 RAW_SOURCE_DIR = REPO_ROOT / "sources" / "raw"
 INVENTORY_DIR = REPO_ROOT / "sources" / "inventory"
 EXTRACTED_DIR = REPO_ROOT / "sources" / "extracted"

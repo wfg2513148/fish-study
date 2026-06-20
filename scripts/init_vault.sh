@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VAULT="/Users/kwang/Downloads/obsidian/fish-study"
+VAULT="${FISH_STUDY_VAULT_ROOT:-$HOME/Downloads/obsidian/fish-study}"
 mkdir -p \
   "$VAULT/.obsidian" \
   "$VAULT/00-入口" \
@@ -147,4 +147,3 @@ cat > "$VAULT/99-模板/今日学习计划模板.md" <<'MD'
 MD
 
 printf 'Initialized Obsidian vault at %s\n' "$VAULT"
-
