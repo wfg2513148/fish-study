@@ -12,6 +12,7 @@
 - Obsidian vault 写入当前机器指定路径，不写回旧机器路径。
 - `fish-study-photo-workflow`、`fish-study-exam-paper` 和 `gpt-image-2` 在 Codex 会话中可用。
 - Playwright 可导出带嵌图和页脚页码的 PDF。
+- `templates/exam-paper/`、`templates/exam-paper/figure-manifest.json` 和 `scripts/generate_exam_paper.py` 可生成中文文件名、带本地配图的正式模拟卷 PDF。
 - 原始 ZIP、PDF、课件和扫描图只保存在本机，不提交 Git。
 
 ## 目标状态
@@ -307,23 +308,38 @@ python3 -m fish_study_wiki.cli verify
 7. `python3 -m fish_study_wiki.cli build`
 8. `python3 -m fish_study_wiki.cli study-context`
 9. `python3 -m fish_study_wiki.cli verify`
+10. `python3 scripts/generate_exam_paper.py --subject all`
+11. 确认生成：
+    - `outputs/codex-session-files/七年级下册数学模拟试卷.pdf`
+    - `outputs/codex-session-files/七年级下册科学模拟试卷.pdf`
+    - `outputs/codex-session-files/七年级下册英语模拟试卷.pdf`
 
 ## AI 生成真实试卷时的额外检查
 
 当任务涉及模拟卷、PDF、图片或“真实试卷格式”：
 
 1. 先使用 `fish-study-exam-paper` skill。
-2. 所有绘图题使用 `gpt-image-2`。
-3. 图片保存到本地 `outputs/exam-preview/assets/`。
-4. 用 Playwright 截图检查 HTML。
-5. 用 Playwright `page.pdf` 导出 PDF。
-6. PDF 页脚使用浏览器变量生成 `当前页/总页数`。
-7. 用 `pypdf` 检查页数、页码文本、图片对象。
-8. 用 `qlmanage -t` 生成高分辨率预览，确认页码真的渲染出来。
-9. 交付时使用 Markdown 绝对路径文件链接：
+2. 先运行仓库内可复现模板脚本，不要凭记忆重写版式：
+
+   ```bash
+   python3 scripts/generate_exam_paper.py --subject math
+   python3 scripts/generate_exam_paper.py --subject all
+   ```
+
+3. 模板源头是 `templates/exam-paper/`，配图规则源头是 `templates/exam-paper/figure-manifest.json`，最终中文 PDF 输出到 `outputs/codex-session-files/`。
+4. 所有新增绘图题使用 `gpt-image-2`。
+5. 新图片先保存到本地 `outputs/exam-preview/assets/`；确定要长期复用后，再移动到 `templates/exam-paper/assets/` 或 `templates/exam-paper/mobile/science-assets/`。
+6. 当前正式模拟卷最低图片引用数：数学 3，科学 16，英语 1；生成脚本会检查本地图片是否存在和浏览器渲染宽度。
+7. 知识点讲解也要图文并茂：几何、坐标、实验、生物结构、地图、路线、图表等内容必须配图。
+8. 用 Playwright 截图检查 HTML。
+9. 用 Playwright `page.pdf` 导出 PDF。
+10. PDF 页脚使用浏览器变量生成 `当前页/总页数`。
+11. 用 `pypdf` 检查页数、页码文本、图片对象。
+12. 用 `qlmanage -t` 生成高分辨率预览，确认页码真的渲染出来。
+13. 交付时使用中文 PDF 文件名和 Markdown 绝对路径文件链接：
 
 ```md
-[math-grade7-mock-paper.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+[七年级下册数学模拟试卷.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/七年级下册数学模拟试卷.pdf)
 ```
 
 不要优先使用：

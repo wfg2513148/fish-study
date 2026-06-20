@@ -9,9 +9,41 @@ Produce independent, print-ready exam papers that look like real school papers a
 ## Assumptions
 
 - The project root is the current Fish Study git checkout. Do not assume `/Users/kwang/fish-study`; confirm with `pwd` or the user's active workspace when needed.
+- The tracked paper format source lives under `templates/exam-paper/`.
 - Generated files live under `outputs/` and are not committed.
 - Source materials and copyrighted originals stay local and are not committed.
 - If a question needs a drawing or diagram, generate a real image with `gpt-image-2`; do not use placeholders.
+
+## Reproducible Template Rule
+
+When the user asks for the current formal mock-paper format, start from the tracked templates and script:
+
+```bash
+python3 scripts/generate_exam_paper.py --subject math
+python3 scripts/generate_exam_paper.py --subject science
+python3 scripts/generate_exam_paper.py --subject english
+```
+
+Use `--subject all` to generate the three tracked sample papers.
+
+Do not recreate the exam CSS or HTML shell from scratch unless the user explicitly asks for a redesign. The stable layout, image sizing, print pagination, and local image references are recorded in:
+
+- `templates/exam-paper/exam.css`
+- `templates/exam-paper/math-grade7.html`
+- `templates/exam-paper/science-grade7.html`
+- `templates/exam-paper/english-grade7.html`
+- `templates/exam-paper/figure-manifest.json`
+- `scripts/generate_exam_paper.py`
+
+`outputs/exam-preview/` is only a preview/export workspace. It is ignored by Git and cannot be used as the source of truth on another machine.
+
+The generator validates that local images exist before exporting PDF. Current minimum image references:
+
+- math: at least 3.
+- science: at least 16.
+- English: at least 1.
+
+If validation fails, do not remove image requirements to make the script pass. Generate or restore the missing diagrams with `gpt-image-2`, then rerun the generator.
 
 ## Required Paper Standard
 
@@ -46,11 +78,15 @@ For English:
 ## Image Rules
 
 - Use `gpt-image-2` for all required diagrams.
-- Store images locally under `outputs/exam-preview/assets/`.
+- Follow `templates/exam-paper/figure-manifest.json` for subject minimums, existing figure purposes, and prompt rules.
+- Store newly generated images locally under `outputs/exam-preview/assets/` while drafting.
+- For a reusable sample or stable template image, move the final local image into `templates/exam-paper/assets/` or `templates/exam-paper/mobile/science-assets/` and update the corresponding HTML template.
 - Use black-and-white textbook/workbook style unless the user asks otherwise.
 - Avoid long generated text inside images.
 - Check image dimensions visually and by DOM measurement.
 - Fix images that render too narrow before exporting PDF.
+- Knowledge-point explanations should also be illustrated when the concept is visual, spatial, structural, experimental, map-based, chart-based, or process-based.
+- Put diagrams next to the matching knowledge point or question; do not hide them in a separate appendix.
 
 ## PDF Rules
 
@@ -86,7 +122,7 @@ Before responding:
 When sending generated files in the Codex conversation, use Markdown links with absolute local paths:
 
 ```md
-[math-grade7-mock-paper.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+[七年级下册数学模拟试卷.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/七年级下册数学模拟试卷.pdf)
 ```
 
 Do not rely on plain paths, `127.0.0.1`, or `/mnt/data` first.

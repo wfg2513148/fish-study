@@ -97,6 +97,7 @@ fi
 printf '\nNext checks:\n'
 printf '  cd %s\n' "$ROOT"
 printf '  python3 -m pytest -q\n'
+printf '  python3 scripts/generate_exam_paper.py --subject all\n'
 printf '  python3 -m fish_study_wiki.cli study-context\n'
 printf '  scripts/init_vault.sh\n'
 printf '  scripts/download_sources.sh\n'

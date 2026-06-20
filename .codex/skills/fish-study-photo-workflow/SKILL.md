@@ -13,6 +13,7 @@ Turn marked wrong-question photos into Fish Study training outputs while keeping
 - The Python CLI only validates structured JSON, renders materials, and writes Obsidian records.
 - Do not ask the parent to write or edit JSON.
 - Do not use this skill for formal mock exam PDFs; use `fish-study-exam-paper` for real paper format, gpt-image-2 diagrams, PDF export, and PDF visual checks.
+- Knowledge-point explanations should be illustrated when the concept is visual, spatial, experimental, structural, map-based, chart-based, or process-based.
 
 ## Workflow
 
@@ -45,7 +46,23 @@ python3 -m fish_study_wiki.cli study-context
 python3 -m fish_study_wiki.cli study-wrong outputs/photo-workflow/YYYY-MM-DD-wrong-question-training.json
 ```
 
-7. Return the generated aggregate sheet, per-subject sheets, per-subject knowledge notes, answer sheets, and Obsidian note paths as Markdown absolute local file links.
+7. Export generated daily materials to PDF, copy delivery PDFs into
+   `outputs/codex-session-files/`, and return links using the exact local-file
+   link contract below.
+
+## Illustrated Knowledge Rule
+
+Daily knowledge explanations must not become plain text dumps when diagrams would make the concept easier to understand.
+
+- For math, add diagrams for geometry, coordinate systems, transformations, charts, and word-problem quantity relationships.
+- For science, add diagrams for apparatus, biological structures, matter models, physical processes, charts, and experiment variables.
+- For English, add maps, route sketches, timetables, classroom scenes, or reading-context images when they support comprehension.
+- Use `gpt-image-2` for new diagrams; use black-and-white workbook style unless the user asks otherwise.
+- Keep long explanation text in Markdown or HTML, not inside the image.
+- Put each diagram next to the matching knowledge point or training question.
+- Save user-facing illustrated PDFs under `outputs/codex-session-files/` and deliver them with exact filename Markdown links.
+
+If the user asks for a real mock exam, use `fish-study-exam-paper`; that workflow enforces `templates/exam-paper/figure-manifest.json`, local image existence, image readability, and PDF embedding.
 
 ## Multi-Photo Subject JSON
 
@@ -127,13 +144,32 @@ Keep the final response short:
 
 - Say which subjects and knowledge points were found.
 - Say which items need confirmation because the photo or color mark was unclear.
-- Link the aggregate student sheet and the per-subject student sheets, answer sheets, and knowledge notes.
+- Link the aggregate student PDF, per-subject student PDFs, answer PDFs, and knowledge-note PDFs.
 - Do not expose the JSON unless the user asks.
 
-Use absolute Markdown links:
+Use the Codex local-file delivery contract:
+
+- Put every user-facing PDF, and any ZIP bundle, under
+  `outputs/codex-session-files/`.
+- Use Markdown links whose visible label is the exact filename, not descriptive
+  text.
+- Point each link to the absolute local path.
+- Do not wrap file links in code fences or backticks.
+- Do not use plain paths, `127.0.0.1` URLs, `/mnt/data` paths, or links to
+  ordinary dated output folders for user delivery.
+- This filename-label pattern is required for files to open reliably from the
+  Codex/iPhone conversation UI.
+
+Correct:
 
 ```md
-[wrong-question-training.pdf](/absolute/path/to/fish-study/outputs/2026-06-20/wrong-question-training.pdf)
+[2026-06-20-science-training.pdf](/Users/kwang/fish-study/outputs/codex-session-files/2026-06-20-science-training.pdf)
+```
+
+Incorrect:
+
+```md
+[科学训练卷 PDF](/Users/kwang/fish-study/outputs/2026-06-20/science-training.pdf)
 ```
 
 ## Verification
@@ -152,5 +188,8 @@ For generated daily PDF sheets, visually inspect the rendered page when practica
 - Student sheet contains no answers or explanations.
 - Answer sheet contains answers, scoring points, and mastery signals.
 - No text overlaps or clipped question content.
+- Delivery copies exist in `outputs/codex-session-files/`.
+- Final links use exact PDF filenames as labels and absolute paths to
+  `outputs/codex-session-files/`.
 
 If the user asks for formal mock papers or PDF output, switch to `fish-study-exam-paper` and run the stricter PDF visual-recognition checks required there.

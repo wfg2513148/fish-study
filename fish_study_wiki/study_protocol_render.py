@@ -42,15 +42,21 @@ def render_training_student_html(training: WrongQuestionTraining) -> str:
         body=f"""
 <header>
   <h1>{escape(training.date)} 错题分析训练卷</h1>
-  <p>按错误类型、知识点和题型完成训练。</p>
-  <p>先补知识点，再做题，最后自检。</p>
+  <p class="subtitle">错题巩固训练 · A4 打印版 · 先补知识点，再完成同类题</p>
+  <div class="info">
+    <div>姓名：<span class="blank"></span></div>
+    <div>班级：<span class="blank"></span></div>
+    <div>得分：<span class="blank"></span></div>
+    <div>用时：<span class="blank"></span></div>
+  </div>
 </header>
-<section>
-  <h2>训练任务</h2>
+<p class="notice">注意：本卷按错误类型、知识点和题型编排。先阅读每组补救提示，再完成训练题；计算题须写出关键步骤和单位。</p>
+<section class="section">
+  <h2 class="section-title">一、训练任务 <span class="score">共 {len(training.clusters)} 组</span></h2>
   {_training_student_clusters(training.clusters)}
 </section>
-<section>
-  <h2>自检区</h2>
+<section class="section">
+  <h2 class="section-title">二、自检区 <span class="score">完成后勾选</span></h2>
   <ul class="check-list">
     <li>我能说出本组题对应的知识点。</li>
     <li>我能说明这次要避免的错误类型。</li>
@@ -67,10 +73,17 @@ def render_training_answer_html(training: WrongQuestionTraining) -> str:
         body=f"""
 <header>
   <h1>{escape(training.date)} 错题分析训练答案</h1>
-  <p>用于批改和调整下一次训练难度。</p>
+  <p class="subtitle">批改参考 · 评分点 · 掌握判断 · 下一次难度建议</p>
+  <div class="info">
+    <div>姓名：<span class="blank"></span></div>
+    <div>班级：<span class="blank"></span></div>
+    <div>批改人：<span class="blank"></span></div>
+    <div>批改日期：<span class="blank"></span></div>
+  </div>
 </header>
-<section>
-  <h2>答案与评分</h2>
+<p class="notice">说明：答案页用于家长或老师批改。先看评分点，再根据掌握判断决定是否升高难度。</p>
+<section class="section">
+  <h2 class="section-title">答案与评分 <span class="score">逐题核对</span></h2>
   {_training_answer_clusters(training.clusters)}
 </section>
 """,
@@ -142,18 +155,25 @@ def render_weekly_worksheet_html(source: WeeklyReviewSource) -> str:
         body=f"""
 <header>
   <h1>{escape(source.week_start)} 至 {escape(source.week_end)} 周复盘训练卷</h1>
-  <p>优先完成复测队列，再做本周高频错因训练。</p>
+  <p class="subtitle">周复盘巩固 · A4 打印版 · 先复测再训练</p>
+  <div class="info">
+    <div>姓名：<span class="blank"></span></div>
+    <div>班级：<span class="blank"></span></div>
+    <div>得分：<span class="blank"></span></div>
+    <div>用时：<span class="blank"></span></div>
+  </div>
 </header>
-<section>
-  <h2>复测队列</h2>
+<p class="notice">注意：优先完成到期复测队列，再做本周高频错因训练；限时题请记录实际用时。</p>
+<section class="section">
+  <h2 class="section-title">一、复测队列 <span class="score">先完成</span></h2>
   {_weekly_review_queue_tasks(source.review_queue)}
 </section>
-<section>
-  <h2>本周训练题</h2>
+<section class="section">
+  <h2 class="section-title">二、本周训练题 <span class="score">按错因分组</span></h2>
   {_training_student_clusters(source.events)}
 </section>
-<section>
-  <h2>自检区</h2>
+<section class="section">
+  <h2 class="section-title">三、自检区 <span class="score">完成后勾选</span></h2>
   <ul class="check-list">
     <li>复测题是否在目标时间内完成。</li>
     <li>同一知识点是否还能独立说出关键步骤。</li>
@@ -170,14 +190,21 @@ def render_weekly_answer_html(source: WeeklyReviewSource) -> str:
         body=f"""
 <header>
   <h1>{escape(source.week_start)} 至 {escape(source.week_end)} 周复盘训练答案</h1>
-  <p>包含复测观察点和本周训练题答案。</p>
+  <p class="subtitle">复测答案参考 · 本周训练题评分</p>
+  <div class="info">
+    <div>姓名：<span class="blank"></span></div>
+    <div>班级：<span class="blank"></span></div>
+    <div>批改人：<span class="blank"></span></div>
+    <div>批改日期：<span class="blank"></span></div>
+  </div>
 </header>
-<section>
-  <h2>复测答案参考</h2>
+<p class="notice">说明：答案页用于批改和调整下周训练优先级。</p>
+<section class="section">
+  <h2 class="section-title">一、复测答案参考 <span class="score">到期项目</span></h2>
   {_weekly_review_queue_answers(source.review_queue)}
 </section>
-<section>
-  <h2>训练题答案与评分</h2>
+<section class="section">
+  <h2 class="section-title">二、训练题答案与评分 <span class="score">逐题核对</span></h2>
   {_training_answer_clusters(source.events)}
 </section>
 """,
@@ -191,42 +218,144 @@ def _html_document(title: str, body: str) -> str:
   <meta charset="utf-8">
   <title>{escape(title)}</title>
   <style>
-    @page {{ size: A4; margin: 16mm; }}
+    @page {{ size: A4; margin: 12mm; }}
     * {{ box-sizing: border-box; }}
     body {{
       width: 210mm;
-      min-height: 297mm;
       margin: 0 auto;
-      padding: 12mm;
-      color: #1f2933;
-      background: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.55;
+      padding: 0;
+      color: #111;
+      background: #e8e8e8;
+      font-family: "Songti SC", "Noto Serif CJK SC", "Microsoft YaHei", serif;
+      line-height: 1.5;
     }}
-    h1 {{ margin: 0 0 6mm; font-size: 24px; }}
-    h2 {{
-      margin: 8mm 0 3mm;
-      padding-bottom: 2mm;
-      border-bottom: 1px solid #cbd5df;
+    .paper {{
+      position: relative;
+      min-height: 297mm;
+      padding: 13mm 13mm 13mm 20mm;
+      background: #fff;
+      border: 1px solid #999;
+    }}
+    .seal {{
+      position: absolute;
+      top: 13mm;
+      bottom: 13mm;
+      left: 7mm;
+      width: 7mm;
+      border-right: 1px dashed #333;
+      color: #333;
+      font-size: 12px;
+      letter-spacing: 2px;
+      writing-mode: vertical-rl;
+      text-align: center;
+    }}
+    header {{
+      text-align: center;
+      border-bottom: 3px double #111;
+      padding-bottom: 4mm;
+    }}
+    header h1 {{
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }}
+    .subtitle {{
+      margin: 2mm 0 0;
+      font-size: 14px;
+    }}
+    .info {{
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3mm;
+      margin-top: 5mm;
+      text-align: left;
+      font-size: 13px;
+    }}
+    .blank {{
+      display: inline-block;
+      min-width: 28mm;
+      border-bottom: 1px solid #333;
+    }}
+    .notice {{
+      margin: 5mm 0;
+      padding: 2mm 3mm;
+      border: 1px solid #222;
+      font-size: 13px;
+    }}
+    .section {{
+      margin-top: 6mm;
+      break-inside: avoid;
+    }}
+    .section-title {{
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 0 0 3mm;
+      padding: 1.5mm 0;
+      border-top: 2px solid #111;
+      border-bottom: 1px solid #111;
       font-size: 18px;
+    }}
+    .score {{
+      font-size: 13px;
+      font-weight: 400;
     }}
     p {{ margin: 0 0 3mm; }}
     ul, ol {{ margin: 0; padding-left: 7mm; }}
-    li {{ margin: 2mm 0; }}
-    article {{ break-inside: avoid; margin: 0 0 5mm; }}
-    h3 {{ margin: 4mm 0 2mm; font-size: 15px; }}
+    li {{ margin: 3mm 0; }}
+    article {{ break-inside: avoid; margin: 0 0 6mm; }}
+    h3 {{
+      margin: 4mm 0 2mm;
+      font-size: 15px;
+      font-weight: 700;
+    }}
     .task-list li, .check-list li {{ break-inside: avoid; }}
-    .knowledge {{ margin-top: 1mm; color: #334e68; }}
+    .knowledge {{
+      margin: 1mm 0 2mm;
+      color: #111;
+      font-size: 13px;
+    }}
     .tag {{
       display: inline-block;
       margin-right: 2mm;
-      color: #334e68;
+      color: #111;
       font-size: 12px;
+    }}
+    .task-list > li {{
+      padding-bottom: 2mm;
+    }}
+    .answer-line {{
+      min-height: 9mm;
+      margin-top: 2mm;
+      border-bottom: 1px solid #555;
+    }}
+    .answer-box {{
+      min-height: 28mm;
+      margin-top: 2mm;
+      border: 1px solid #333;
+    }}
+    @media print {{
+      body {{
+        width: auto;
+        background: #fff;
+      }}
+      .paper {{
+        min-height: auto;
+        border: 0;
+      }}
+      .section,
+      .question {{
+        break-inside: auto;
+      }}
     }}
   </style>
 </head>
 <body>
+<main class="paper">
+<div class="seal">学校 班级 姓名 考号 密封线内不要答题</div>
 {body.strip()}
+</main>
 </body>
 </html>
 """
@@ -234,15 +363,17 @@ def _html_document(title: str, body: str) -> str:
 
 def _training_student_clusters(clusters: tuple[AnalysisCluster, ...]) -> str:
     rows = []
+    question_index = 1
     for index, cluster in enumerate(clusters, start=1):
         rows.append(
             "<article>"
             f"<h3>{index}. {_training_group_title(cluster)}</h3>"
             f"<p class=\"knowledge\">补救：{_knowledge_repair_text(cluster)}</p>"
             f"<ol class=\"task-list\">"
-            f"{_training_question_prompts(cluster.training_questions)}</ol>"
+            f"{_training_question_prompts(cluster.training_questions, start_index=question_index)}</ol>"
             "</article>"
         )
+        question_index += len(cluster.training_questions)
     return "\n".join(rows) if rows else "<p>暂无训练任务。</p>"
 
 
@@ -267,13 +398,20 @@ def _knowledge_repair_text(cluster: AnalysisCluster) -> str:
     return escape(f"{notes}：{strategy}")
 
 
-def _training_question_prompts(questions: tuple[TrainingQuestion, ...]) -> str:
+def _training_question_prompts(
+    questions: tuple[TrainingQuestion, ...],
+    start_index: int = 1,
+) -> str:
     rows = []
-    for question in questions:
+    for index, question in enumerate(questions, start=start_index):
         rows.append(
-            f"<li><span class=\"tag\">难度："
+            "<li class=\"question\">"
+            f"<span class=\"points\">第 {index} 题</span> "
+            f"<span class=\"tag\">难度："
             f"{escape(_difficulty_label(question.difficulty))}</span>"
-            f"{escape(question.prompt)}</li>"
+            f"{escape(question.prompt)}"
+            "<div class=\"answer-box\"></div>"
+            "</li>"
         )
     return "\n".join(rows)
 

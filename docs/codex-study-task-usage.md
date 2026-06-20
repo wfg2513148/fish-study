@@ -25,6 +25,8 @@ Codex 应自动完成：
 4. 对看不清、绿色、偏色、多色、无明确颜色或无法判断学科的照片列入待确认。
 5. 生成结构化 `wrong_question_training` JSON，其中包含 `source_photos` 和每组分析的 `source_photo_ids`。
 6. 调用 CLI 输出总训练卷、分学科训练卷、答案页、知识点讲解和 Obsidian 记录。
+
+知识点讲解不能只输出纯文字。遇到几何、坐标、统计图、科学实验、生物结构、地图、路线、时刻表等视觉化内容时，Codex 应使用 `gpt-image-2` 或已提交的本地图片生成图文讲解，并把图片放在对应知识点旁边。
 7. 用 Markdown 绝对路径文件链接返回结果。
 
 推荐 Codex 使用项目 skill：
@@ -134,6 +136,8 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 - A4 正式试卷样式：密封线、考生信息栏、注意事项、分大题、题量和分值说明。
 - 涉及绘图的题必须使用 `gpt-image-2` 生成正式配图。
 - 科学卷应包含多张图文题配图。
+- 当前样卷最低图片要求：数学 3 张、科学 16 处图片引用、英语 1 张。
+- 复现格式时先运行 `python3 scripts/generate_exam_paper.py --subject all`，不要重写版式或删除图片要求。
 - 图片必须嵌入最终 PDF，不能依赖远程图片或 HTML 外链。
 - PDF 底部必须有 `当前页/总页数` 页码。
 - 输出后必须做视觉检查和 PDF 结构检查。
@@ -141,7 +145,7 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 交付到 Codex 会话时，用 Markdown 绝对路径文件链接：
 
 ```md
-[math-grade7-mock-paper.pdf](/Users/kwang/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+[七年级下册数学模拟试卷.pdf](/Users/kwang/fish-study/outputs/codex-session-files/七年级下册数学模拟试卷.pdf)
 ```
 
 不要优先使用 `127.0.0.1` 或 `/mnt/data` 作为交付方式。

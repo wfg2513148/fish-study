@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "generator": "gpt-image-2",
+  "global_rules": [
+    "All exam diagrams must be local files before PDF export.",
+    "Use black-and-white textbook or workbook line art suitable for printing.",
+    "Do not put long question text inside images; keep question text in HTML.",
+    "Keep only necessary labels such as A/B/C/D, 图 1, 图 2, axes, scale marks, or simple place names.",
+    "Figures must be readable after A4 PDF export; generated HTML must not render figures below 160 CSS px wide.",
+    "If a generated diagram is reused as a stable sample, commit it under templates/exam-paper/assets or templates/exam-paper/mobile/science-assets."
+  ],
+  "knowledge_explanation_rules": [
+    "Knowledge-point explanations should be illustrated when the concept is visual, spatial, experimental, structural, map-based, chart-based, or process-based.",
+    "For math, illustrate geometry, coordinate systems, statistics charts, transformations, and multi-step word-problem models.",
+    "For science, illustrate apparatus, biological structures, matter models, physical processes, charts, and experiment variables.",
+    "For English, illustrate maps, timetables, routes, classroom scenes, and reading contexts when they help comprehension.",
+    "Keep diagrams next to the matching knowledge point or question, not in a separate image appendix."
+  ],
+  "subjects": {
+    "math": {
+      "min_image_references": 3,
+      "required_style": "clean black-and-white junior-middle-school math workbook diagrams",
+      "figures": [
+        {
+          "path": "assets/math-coordinate-translation.png",
+          "purpose": "coordinate-plane translation question",
+          "prompt": "Black-and-white coordinate plane, triangle ABC and translated triangle A'B'C', grid lines, clear axis arrows and point labels, no long text."
+        },
+        {
+          "path": "assets/math-parallel-lines.png",
+          "purpose": "parallel lines angle reasoning question",
+          "prompt": "Black-and-white geometry diagram, two parallel horizontal lines cut by a transversal, angles labeled 1 and 2, clean workbook style."
+        },
+        {
+          "path": "assets/math-weekly-line-chart.png",
+          "purpose": "statistics line-chart question",
+          "prompt": "Black-and-white line chart for weekly reading counts, x-axis Monday to Friday, y-axis counts, clear markers and grid, no decorative style."
+        }
+      ]
+    },
+    "science": {
+      "min_image_references": 16,
+      "required_style": "compressed black-and-white science textbook line diagrams for mobile-safe PDF",
+      "figures": [
+        {
+          "path": "mobile/science-assets/science-microscope.jpg",
+          "purpose": "microscope structure questions",
+          "prompt": "Black-and-white microscope structure diagram, labels A/B/C/D on eyepiece, objective lens, stage, mirror or light source, clean textbook line art."
+        },
+        {
+          "path": "mobile/science-assets/science-flower-structure.jpg",
+          "purpose": "flower structure questions",
+          "prompt": "Black-and-white flower structure diagram, labels for petal, stamen, pistil, ovary with A/B/C/D markers, clean junior science style."
+        },
+        {
+          "path": "mobile/science-assets/science-atom-structure.jpg",
+          "purpose": "atom structure questions",
+          "prompt": "Black-and-white atom model, central nucleus with proton and neutron symbols, electrons around shell, simple labels A/B/C/D."
+        },
+        {
+          "path": "mobile/science-assets/science-heating-curve.jpg",
+          "purpose": "heating curve questions",
+          "prompt": "Black-and-white temperature-time heating curve, plateau segment visible, axis labels temperature and time, simple grid."
+        },
+        {
+          "path": "mobile/science-assets/science-food-chain.jpg",
+          "purpose": "food-chain and bioaccumulation questions",
+          "prompt": "Black-and-white food chain diagram, grass to insect to frog to snake to hawk, arrows clear, labels A/B/C/D/E only."
+        },
+        {
+          "path": "mobile/science-assets/science-soil-profile.jpg",
+          "purpose": "soil profile questions",
+          "prompt": "Black-and-white soil profile cross-section, topsoil, subsoil, parent material, roots, rock layer, labels A/B/C."
+        },
+        {
+          "path": "mobile/science-assets/science-root-hair-zone.jpg",
+          "purpose": "root hair absorption questions",
+          "prompt": "Black-and-white root tip diagram, root cap, meristem, elongation zone, root hair zone, simple labels A/B/C/D."
+        },
+        {
+          "path": "mobile/science-assets/science-displacement-cylinder.jpg",
+          "purpose": "water displacement volume question",
+          "prompt": "Black-and-white graduated cylinder before and after adding stone, water levels V1 and V2, clean lab apparatus line art."
+        },
+        {
+          "path": "mobile/science-assets/science-seed-germination-setup.jpg",
+          "purpose": "seed germination variable-control question",
+          "prompt": "Black-and-white seed germination experiment setup, dry cotton, moist cotton, flooded condition, labels A/B/C, no long text."
+        }
+      ]
+    },
+    "english": {
+      "min_image_references": 1,
+      "required_style": "clear black-and-white reading-comprehension map or scene",
+      "figures": [
+        {
+          "path": "assets/english-town-map.png",
+          "purpose": "town map reading questions",
+          "prompt": "Black-and-white simple town map for junior English reading comprehension, school, library, bank, park, supermarket, roads and compass, labels large enough to read."
+        }
+      ]
+    }
+  }
+}

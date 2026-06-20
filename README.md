@@ -156,11 +156,29 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 
 - `docs/exam-paper-output.md`
 - `.codex/skills/fish-study-exam-paper/SKILL.md`
+- `templates/exam-paper/`
+- `templates/exam-paper/figure-manifest.json`
+
+如果只想先确认当前正式试卷格式能否复现，直接运行：
+
+```bash
+python3 scripts/generate_exam_paper.py --subject all
+```
+
+生成文件：
+
+```text
+outputs/codex-session-files/七年级下册数学模拟试卷.pdf
+outputs/codex-session-files/七年级下册科学模拟试卷.pdf
+outputs/codex-session-files/七年级下册英语模拟试卷.pdf
+```
+
+生成脚本会检查本地配图是否存在。当前样卷最低配图要求：数学 3 张、科学 16 处图片引用、英语 1 张。新增配图题必须使用 `gpt-image-2`，并把稳定复用图片放回 `templates/exam-paper/`。
 
 在 Codex 会话里发送本地 PDF 时，使用 Markdown 文件链接：
 
 ```md
-[math-grade7-mock-paper.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/math-grade7-mock-paper.pdf)
+[七年级下册数学模拟试卷.pdf](/absolute/path/to/fish-study/outputs/codex-session-files/七年级下册数学模拟试卷.pdf)
 ```
 
 不要优先用 `127.0.0.1` 或 `/mnt/data`。
