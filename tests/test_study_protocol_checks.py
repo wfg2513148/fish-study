@@ -29,8 +29,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             daily_training(),
             "错题分析训练卷\n知识点补救\n自检区",
             "参考答案\n评分点\n掌握判断",
-            "wrong-question-training.html",
-            "wrong-question-training-answers.html",
+            "wrong-question-training.pdf",
+            "wrong-question-training-answers.pdf",
         )
 
         self.assertTrue(all(row.passed for row in rows))
@@ -54,8 +54,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             daily_training(),
             "参考答案：A",
             "参考答案\n评分点",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "student_no_answers")
@@ -66,8 +66,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             daily_training(),
             "错题分析训练卷\n自检区",
             "评分点\n掌握判断",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "answer_page_contains_answers")
@@ -79,8 +79,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, uncertain_items=()),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "pending_items_are_uncertain")
@@ -95,8 +95,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             ),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "source_photos_are_uncertain")
@@ -109,8 +109,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, clusters=(unknown,) + training.clusters[1:], uncertain_items=()),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "pending_items_are_uncertain")
@@ -131,8 +131,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             ),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         self.assertTrue(all(row.passed for row in rows))
@@ -143,8 +143,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, uncertain_items=("数学",)),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "pending_items_are_uncertain")
@@ -157,8 +157,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, clusters=(cluster,) + training.clusters[1:]),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "knowledge_note_valid")
@@ -171,8 +171,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, clusters=(cluster,) + training.clusters[1:]),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "training_questions_present")
@@ -185,8 +185,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, clusters=(cluster,) + training.clusters[1:]),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "difficulty_mix_valid")
@@ -199,8 +199,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             replace(training, clusters=(cluster,) + training.clusters[1:]),
             "错题分析训练卷",
             "参考答案",
-            "wrong.html",
-            "answers.html",
+            "wrong.pdf",
+            "answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "difficulty_mix_valid")
@@ -231,8 +231,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             "周巩固测试卷\n自检区",
             "参考答案\n评分点",
             "weekly-review.md",
-            "weekly-review.html",
-            "weekly-review-answers.html",
+            "weekly-review.pdf",
+            "weekly-review-answers.pdf",
         )
 
         self.assertTrue(all(row.passed for row in rows))
@@ -245,8 +245,8 @@ class StudyProtocolCheckTests(unittest.TestCase):
             "周巩固测试卷\n自检区",
             "参考答案\n评分点",
             "weekly-review.md",
-            "weekly-review.html",
-            "weekly-review-answers.html",
+            "weekly-review.pdf",
+            "weekly-review-answers.pdf",
         )
 
         row = next(row for row in rows if row.code == "training_questions_present")

@@ -43,19 +43,19 @@ Rules:
 
 For each run, keep existing aggregate files:
 
-- `wrong-question-training.html`
-- `wrong-question-training-answers.html`
+- `wrong-question-training.pdf`
+- `wrong-question-training-answers.pdf`
 
 Also output per-subject files when matching clusters exist:
 
-- `math-training.html`
-- `math-training-answers.html`
+- `math-training.pdf`
+- `math-training-answers.pdf`
 - `math-knowledge.md`
-- `science-training.html`
-- `science-training-answers.html`
+- `science-training.pdf`
+- `science-training-answers.pdf`
 - `science-knowledge.md`
-- `english-training.html`
-- `english-training-answers.html`
+- `english-training.pdf`
+- `english-training-answers.pdf`
 - `english-knowledge.md`
 
 The knowledge Markdown is an independent parent/student handoff. It must include knowledge points, root causes, photo evidence, and training advice.

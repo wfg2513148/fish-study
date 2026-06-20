@@ -133,7 +133,7 @@ Keep the final response short:
 Use absolute Markdown links:
 
 ```md
-[wrong-question-training.html](/absolute/path/to/fish-study/outputs/2026-06-20/wrong-question-training.html)
+[wrong-question-training.pdf](/absolute/path/to/fish-study/outputs/2026-06-20/wrong-question-training.pdf)
 ```
 
 ## Verification
@@ -146,7 +146,7 @@ python3 -m fish_study_wiki.cli study-wrong <generated-json>
 python3 -m pytest -q
 ```
 
-For generated daily HTML sheets, visually inspect the rendered page when practical:
+For generated daily PDF sheets, visually inspect the rendered page when practical:
 
 - A4 layout is readable.
 - Student sheet contains no answers or explanations.

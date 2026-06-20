@@ -35,8 +35,8 @@ def run_wrong(
     training = load_wrong_question_training(input_path)
     student_html = render_training_student_html(training)
     answer_html = render_training_answer_html(training)
-    printable_path = Path(output_root) / training.date / "wrong-question-training.html"
-    answer_path = Path(output_root) / training.date / "wrong-question-training-answers.html"
+    printable_path = Path(output_root) / training.date / "wrong-question-training.pdf"
+    answer_path = Path(output_root) / training.date / "wrong-question-training-answers.pdf"
     if not _print_check_errors(
         check_wrong_question_training(
             training,
@@ -50,16 +50,16 @@ def run_wrong(
 
     result = write_training_outputs(training, output_root, vault_root)
     _print_paths(
-        ("student_html", result.student_html),
-        ("answer_html", result.answer_html),
+        ("student_pdf", result.student_pdf),
+        ("answer_pdf", result.answer_pdf),
         ("obsidian_note", result.obsidian_note),
         *tuple(("event_note", path) for path in result.event_notes),
         *tuple(
-            (f"{output.subject}_student_html", output.student_html)
+            (f"{output.subject}_student_pdf", output.student_pdf)
             for output in result.subject_outputs
         ),
         *tuple(
-            (f"{output.subject}_answer_html", output.answer_html)
+            (f"{output.subject}_answer_pdf", output.answer_pdf)
             for output in result.subject_outputs
         ),
         *tuple(
@@ -79,8 +79,8 @@ def run_weekly_review(
     student_html = render_weekly_worksheet_html(source)
     answer_html = render_weekly_answer_html(source)
     report_path = Path(output_root) / source.week_end / "weekly-review.md"
-    printable_path = Path(output_root) / source.week_end / "weekly-review.html"
-    answer_path = Path(output_root) / source.week_end / "weekly-review-answers.html"
+    printable_path = Path(output_root) / source.week_end / "weekly-review.pdf"
+    answer_path = Path(output_root) / source.week_end / "weekly-review-answers.pdf"
     if not _print_check_errors(
         check_weekly_review(
             source,
@@ -96,8 +96,8 @@ def run_weekly_review(
     result = write_weekly_review_outputs(source, output_root, vault_root)
     _print_paths(
         ("report_markdown", result.report_markdown),
-        ("student_html", result.student_html),
-        ("answer_html", result.answer_html),
+        ("student_pdf", result.student_pdf),
+        ("answer_pdf", result.answer_pdf),
         ("obsidian_note", result.obsidian_note),
     )
     return 0

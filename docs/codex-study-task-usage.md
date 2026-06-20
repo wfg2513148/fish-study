@@ -76,10 +76,10 @@ python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 
 默认输出：
 
-- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
-- 批改答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
-- 分学科学生训练卷：`outputs/YYYY-MM-DD/math-training.html`、`science-training.html`、`english-training.html`
-- 分学科批改答案页：`outputs/YYYY-MM-DD/math-training-answers.html`、`science-training-answers.html`、`english-training-answers.html`
+- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.pdf`
+- 批改答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.pdf`
+- 分学科学生训练卷：`outputs/YYYY-MM-DD/math-training.pdf`、`science-training.pdf`、`english-training.pdf`
+- 分学科批改答案页：`outputs/YYYY-MM-DD/math-training-answers.pdf`、`science-training-answers.pdf`、`english-training-answers.pdf`
 - 分学科知识点讲解：`outputs/YYYY-MM-DD/math-knowledge.md`、`science-knowledge.md`、`english-knowledge.md`
 - Obsidian 错题归因：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
 - Obsidian 知识点事件：`$FISH_STUDY_VAULT_ROOT/10-教材Wiki/.../*.md`
@@ -118,8 +118,8 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 默认输出：
 
 - 周复盘报告：`outputs/YYYY-MM-DD/weekly-review.md`
-- 周巩固测试卷：`outputs/YYYY-MM-DD/weekly-review.html`
-- 周巩固答案页：`outputs/YYYY-MM-DD/weekly-review-answers.html`
+- 周巩固测试卷：`outputs/YYYY-MM-DD/weekly-review.pdf`
+- 周巩固答案页：`outputs/YYYY-MM-DD/weekly-review-answers.pdf`
 - Obsidian 复习计划：`$FISH_STUDY_VAULT_ROOT/40-复习计划/YYYY-MM-DD.md`
 
 周复盘报告包含错因分布、反复知识点、高频二级错因、难度是否合适、遗忘风险、复测队列和下周优先级。

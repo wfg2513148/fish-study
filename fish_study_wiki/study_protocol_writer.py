@@ -6,6 +6,7 @@ from pathlib import Path
 from fish_study_wiki import settings
 from fish_study_wiki.knowledge_graph import merge_training_events
 from fish_study_wiki.models import safe_markdown_filename
+from fish_study_wiki.pdf_export import write_pdf_from_html
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
     KnowledgeMatch,
@@ -35,15 +36,15 @@ SUBJECT_SLUGS = {
 @dataclass(frozen=True)
 class SubjectTrainingWriteResult:
     subject: str
-    student_html: Path
-    answer_html: Path
+    student_pdf: Path
+    answer_pdf: Path
     knowledge_markdown: Path
 
 
 @dataclass(frozen=True)
 class TrainingWriteResult:
-    student_html: Path
-    answer_html: Path
+    student_pdf: Path
+    answer_pdf: Path
     obsidian_note: Path
     event_notes: tuple[Path, ...]
     subject_outputs: tuple[SubjectTrainingWriteResult, ...] = ()
@@ -52,8 +53,8 @@ class TrainingWriteResult:
 @dataclass(frozen=True)
 class WeeklyReviewWriteResult:
     report_markdown: Path
-    student_html: Path
-    answer_html: Path
+    student_pdf: Path
+    answer_pdf: Path
     obsidian_note: Path
 
 
@@ -64,28 +65,28 @@ def write_training_outputs(
     graph_path: Path | str | None = None,
 ) -> TrainingWriteResult:
     output_dir = _dated_output_dir(output_root, training.date)
-    student_html = output_dir / "wrong-question-training.html"
-    answer_html = output_dir / "wrong-question-training-answers.html"
-    student_html.write_text(render_training_student_html(training), encoding="utf-8")
-    answer_html.write_text(render_training_answer_html(training), encoding="utf-8")
+    student_pdf = output_dir / "wrong-question-training.pdf"
+    answer_pdf = output_dir / "wrong-question-training-answers.pdf"
+    write_pdf_from_html(render_training_student_html(training), student_pdf)
+    write_pdf_from_html(render_training_answer_html(training), answer_pdf)
     subject_outputs = _write_subject_training_outputs(training, output_dir)
 
     obsidian_note = _wrong_question_path(vault_root, training.date)
     obsidian_note.parent.mkdir(parents=True, exist_ok=True)
     obsidian_note.write_text(
-        _render_training_note(training, student_html, answer_html),
+        _render_training_note(training, student_pdf, answer_pdf),
         encoding="utf-8",
     )
     event_notes = _append_analysis_event_records(
         Path(vault_root),
         training,
-        student_html,
-        answer_html,
+        student_pdf,
+        answer_pdf,
     )
     merge_training_events(_default_graph_path(output_root, graph_path), training)
     return TrainingWriteResult(
-        student_html,
-        answer_html,
+        student_pdf,
+        answer_pdf,
         obsidian_note,
         tuple(sorted(event_notes)),
         subject_outputs,
@@ -99,22 +100,22 @@ def write_weekly_review_outputs(
 ) -> WeeklyReviewWriteResult:
     output_dir = _dated_output_dir(output_root, source.week_end)
     report_markdown = output_dir / "weekly-review.md"
-    student_html = output_dir / "weekly-review.html"
-    answer_html = output_dir / "weekly-review-answers.html"
+    student_pdf = output_dir / "weekly-review.pdf"
+    answer_pdf = output_dir / "weekly-review-answers.pdf"
     report_markdown.write_text(render_weekly_review_markdown(source), encoding="utf-8")
-    student_html.write_text(render_weekly_worksheet_html(source), encoding="utf-8")
-    answer_html.write_text(render_weekly_answer_html(source), encoding="utf-8")
+    write_pdf_from_html(render_weekly_worksheet_html(source), student_pdf)
+    write_pdf_from_html(render_weekly_answer_html(source), answer_pdf)
 
     obsidian_note = _review_plan_path(vault_root, source.week_end)
     obsidian_note.parent.mkdir(parents=True, exist_ok=True)
     obsidian_note.write_text(
-        _render_weekly_review_note(source, report_markdown, student_html, answer_html),
+        _render_weekly_review_note(source, report_markdown, student_pdf, answer_pdf),
         encoding="utf-8",
     )
     return WeeklyReviewWriteResult(
         report_markdown,
-        student_html,
-        answer_html,
+        student_pdf,
+        answer_pdf,
         obsidian_note,
     )
 
@@ -133,16 +134,16 @@ def _write_subject_training_outputs(
     for subject in _training_subjects(training.clusters):
         subject_training = _subject_training(training, subject)
         slug = _subject_slug(subject)
-        student_html = output_dir / f"{slug}-training.html"
-        answer_html = output_dir / f"{slug}-training-answers.html"
+        student_pdf = output_dir / f"{slug}-training.pdf"
+        answer_pdf = output_dir / f"{slug}-training-answers.pdf"
         knowledge_markdown = output_dir / f"{slug}-knowledge.md"
-        student_html.write_text(
+        write_pdf_from_html(
             render_training_student_html(subject_training),
-            encoding="utf-8",
+            student_pdf,
         )
-        answer_html.write_text(
+        write_pdf_from_html(
             render_training_answer_html(subject_training),
-            encoding="utf-8",
+            answer_pdf,
         )
         knowledge_markdown.write_text(
             render_subject_knowledge_markdown(training, subject),
@@ -151,8 +152,8 @@ def _write_subject_training_outputs(
         outputs.append(
             SubjectTrainingWriteResult(
                 subject=subject,
-                student_html=student_html,
-                answer_html=answer_html,
+                student_pdf=student_pdf,
+                answer_pdf=answer_pdf,
                 knowledge_markdown=knowledge_markdown,
             )
         )
@@ -226,15 +227,15 @@ def _review_plan_path(vault_root: Path | str, plan_date: str) -> Path:
 
 def _render_training_note(
     training: WrongQuestionTraining,
-    student_html: Path,
-    answer_html: Path,
+    student_pdf: Path,
+    answer_pdf: Path,
 ) -> str:
     return f"""# {training.date} 错题归因
 
 ## 打印材料
 
-- 学生训练卷：{student_html}
-- 批改答案页：{answer_html}
+- 学生训练卷：{student_pdf}
+- 批改答案页：{answer_pdf}
 
 ## 静默分析摘要
 
@@ -249,16 +250,16 @@ def _render_training_note(
 def _render_weekly_review_note(
     source: WeeklyReviewSource,
     report_markdown: Path,
-    student_html: Path,
-    answer_html: Path,
+    student_pdf: Path,
+    answer_pdf: Path,
 ) -> str:
     return f"""# {source.week_end} 错题周复盘
 
 ## 输出文件
 
 - 周复盘报告：{report_markdown}
-- 周巩固测试卷：{student_html}
-- 周巩固答案页：{answer_html}
+- 周巩固测试卷：{student_pdf}
+- 周巩固答案页：{answer_pdf}
 
 ## 周复盘报告
 
@@ -289,8 +290,8 @@ def _analysis_cluster_lines(clusters: tuple[AnalysisCluster, ...]) -> str:
 def _append_analysis_event_records(
     vault_root: Path,
     training: WrongQuestionTraining,
-    student_html: Path,
-    answer_html: Path,
+    student_pdf: Path,
+    answer_pdf: Path,
 ) -> set[Path]:
     by_note: dict[Path, list[AnalysisCluster]] = {}
     for cluster in training.clusters:
@@ -312,8 +313,8 @@ def _append_analysis_event_records(
             training.date,
             training.source_batch,
             clusters,
-            student_html,
-            answer_html,
+            student_pdf,
+            answer_pdf,
         )
         begin = _analysis_block_begin(training.date, training.source_batch)
         if begin not in current:
@@ -343,16 +344,16 @@ def _analysis_event_block(
     record_date: str,
     source_batch: str,
     clusters: list[AnalysisCluster],
-    student_html: Path,
-    answer_html: Path,
+    student_pdf: Path,
+    answer_pdf: Path,
 ) -> str:
     lines = [
         _analysis_block_begin(record_date, source_batch),
         f"### {record_date} 错题分析事件",
         "",
         f"- 来源批次：{source_batch}",
-        f"- 学生训练卷：{student_html}",
-        f"- 批改答案页：{answer_html}",
+        f"- 学生训练卷：{student_pdf}",
+        f"- 批改答案页：{answer_pdf}",
     ]
     for cluster in clusters:
         diagnosis = cluster.diagnosis

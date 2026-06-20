@@ -4,7 +4,7 @@
 
 **Goal:** Support one Codex upload batch containing photos from multiple subjects, with subject-specific root-cause analysis, knowledge explanations, and printable training sheets.
 
-**Architecture:** Codex handles photo vision and subject recognition. Python extends the structured protocol with minimal photo metadata, validates subject/photo references, and writes aggregate plus per-subject outputs using existing renderers.
+**Architecture:** Codex handles photo vision and subject recognition. Python extends the structured protocol with minimal photo metadata, validates subject/photo references, and writes aggregate plus per-subject PDF outputs using existing HTML renderers as internal print templates.
 
 **Tech Stack:** Python dataclasses, JSON validation, unittest/pytest, existing HTML/Markdown renderers, Codex skills.
 
@@ -55,7 +55,7 @@ python3 -m unittest tests.test_study_protocol_checks -v
 
 - [x] Reuse existing training sheet and answer renderers with subject-filtered training objects.
 - [x] Add `render_subject_knowledge_markdown`.
-- [x] Write per-subject `*-training.html`, `*-training-answers.html`, and `*-knowledge.md`.
+- [x] Write per-subject `*-training.pdf`, `*-training-answers.pdf`, and `*-knowledge.md`.
 - [x] Print subject output paths from CLI.
 
 Verify:
@@ -73,7 +73,7 @@ python3 -m unittest tests.test_study_protocol_render tests.test_study_protocol_w
 - Modify: `docs/parent-user-manual.md`
 
 - [x] Document multi-photo multi-subject behavior.
-- [x] Use “分学科训练卷”, not “模拟试卷”, for daily HTML outputs.
+- [x] Use “分学科训练卷”, not “模拟试卷”, for daily PDF outputs.
 - [x] Preserve formal mock-paper PDF boundary in `fish-study-exam-paper`.
 
 Verify:
@@ -95,7 +95,7 @@ git diff --check
 
 Visual acceptance:
 
-- Render aggregate and subject-specific HTML with Playwright.
+- Render aggregate and subject-specific PDF with Playwright.
 - Confirm student sheets are readable, not clipped, and contain no answers.
 - Confirm answer sheets contain answers and scoring points.
 - Confirm knowledge Markdown contains subject, knowledge points, root causes, photo evidence, and training advice.

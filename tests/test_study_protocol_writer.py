@@ -2,6 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pypdf import PdfReader
+
 from fish_study_wiki import settings
 from fish_study_wiki.study_protocol_models import (
     load_weekly_review_source,
@@ -38,15 +40,17 @@ class StudyProtocolWriterTests(unittest.TestCase):
                 vault_root=root / "vault",
             )
 
-            self.assertEqual(result.student_html.name, "wrong-question-training.html")
-            self.assertEqual(result.answer_html.name, "wrong-question-training-answers.html")
-            self.assertEqual(result.student_html.parent.name, "2026-06-19")
+            self.assertEqual(result.student_pdf.name, "wrong-question-training.pdf")
+            self.assertEqual(result.answer_pdf.name, "wrong-question-training-answers.pdf")
+            self.assertEqual(result.student_pdf.parent.name, "2026-06-19")
             self.assertEqual(
                 result.obsidian_note,
                 root / "vault" / "20-错题归因" / "2026-06-19.md",
             )
-            self.assertTrue(result.student_html.exists())
-            self.assertTrue(result.answer_html.exists())
+            self.assertTrue(result.student_pdf.exists())
+            self.assertTrue(result.answer_pdf.exists())
+            self.assertIn("错题分析训练卷", _pdf_text(result.student_pdf))
+            self.assertIn("错题分析训练答案", _pdf_text(result.answer_pdf))
             self.assertTrue(result.obsidian_note.exists())
             self.assertEqual(
                 [output.subject for output in result.subject_outputs],
@@ -58,19 +62,19 @@ class StudyProtocolWriterTests(unittest.TestCase):
                 path.name
                 for output in result.subject_outputs
                 for path in (
-                    output.student_html,
-                    output.answer_html,
+                    output.student_pdf,
+                    output.answer_pdf,
                     output.knowledge_markdown,
                 )
             }
             self.assertEqual(
                 subject_files,
                 {
-                    "science-training.html",
-                    "science-training-answers.html",
+                    "science-training.pdf",
+                    "science-training-answers.pdf",
                     "science-knowledge.md",
-                    "math-training.html",
-                    "math-training-answers.html",
+                    "math-training.pdf",
+                    "math-training-answers.pdf",
                     "math-knowledge.md",
                 },
             )
@@ -84,8 +88,8 @@ class StudyProtocolWriterTests(unittest.TestCase):
                 vault_root=root / "vault",
             )
 
-            student_text = result.student_html.read_text(encoding="utf-8")
-            answer_text = result.answer_html.read_text(encoding="utf-8")
+            student_text = _pdf_text(result.student_pdf)
+            answer_text = _pdf_text(result.answer_pdf)
             for marker in ANSWER_MARKERS:
                 self.assertNotIn(marker, student_text)
             self.assertIn("答案", answer_text)
@@ -100,15 +104,15 @@ class StudyProtocolWriterTests(unittest.TestCase):
             )
 
             by_subject = {output.subject: output for output in result.subject_outputs}
-            math_text = by_subject["数学"].student_html.read_text(encoding="utf-8")
-            science_text = by_subject["科学"].student_html.read_text(encoding="utf-8")
+            math_text = _pdf_text(by_subject["数学"].student_pdf)
+            science_text = _pdf_text(by_subject["科学"].student_pdf)
             math_knowledge = by_subject["数学"].knowledge_markdown.read_text(
                 encoding="utf-8"
             )
-            self.assertIn("平行线", math_text)
-            self.assertNotIn("原子结构", math_text)
-            self.assertIn("原子结构", science_text)
-            self.assertNotIn("平行线角关系", science_text)
+            self.assertIn("限时计算", math_text)
+            self.assertNotIn("概念识别", math_text)
+            self.assertIn("概念识别", science_text)
+            self.assertNotIn("限时计算", science_text)
             self.assertIn("photo-002", math_knowledge)
             self.assertIn("知识点与根因", math_knowledge)
 
@@ -162,8 +166,8 @@ class StudyProtocolWriterTests(unittest.TestCase):
             )
 
             self.assertEqual(result.report_markdown.name, "weekly-review.md")
-            self.assertEqual(result.student_html.name, "weekly-review.html")
-            self.assertEqual(result.answer_html.name, "weekly-review-answers.html")
+            self.assertEqual(result.student_pdf.name, "weekly-review.pdf")
+            self.assertEqual(result.answer_pdf.name, "weekly-review-answers.pdf")
             self.assertEqual(result.report_markdown.parent.name, "2026-06-21")
             self.assertEqual(
                 result.obsidian_note,
@@ -171,9 +175,15 @@ class StudyProtocolWriterTests(unittest.TestCase):
             )
             self.assertIn("难度是否合适", result.report_markdown.read_text(encoding="utf-8"))
             self.assertIn("错题周复盘", result.obsidian_note.read_text(encoding="utf-8"))
+            self.assertIn("周复盘训练卷", _pdf_text(result.student_pdf))
             for marker in ANSWER_MARKERS:
-                self.assertNotIn(marker, result.student_html.read_text(encoding="utf-8"))
-            self.assertIn("答案", result.answer_html.read_text(encoding="utf-8"))
+                self.assertNotIn(marker, _pdf_text(result.student_pdf))
+            self.assertIn("答案", _pdf_text(result.answer_pdf))
+
+
+def _pdf_text(path: Path) -> str:
+    reader = PdfReader(str(path))
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
 
 
 if __name__ == "__main__":

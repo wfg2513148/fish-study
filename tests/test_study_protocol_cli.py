@@ -23,13 +23,13 @@ class StudyProtocolCliTests(unittest.TestCase):
             )
 
             expected = (
-                root / "outputs" / "2026-06-19" / "wrong-question-training.html",
-                root / "outputs" / "2026-06-19" / "wrong-question-training-answers.html",
-                root / "outputs" / "2026-06-19" / "science-training.html",
-                root / "outputs" / "2026-06-19" / "science-training-answers.html",
+                root / "outputs" / "2026-06-19" / "wrong-question-training.pdf",
+                root / "outputs" / "2026-06-19" / "wrong-question-training-answers.pdf",
+                root / "outputs" / "2026-06-19" / "science-training.pdf",
+                root / "outputs" / "2026-06-19" / "science-training-answers.pdf",
                 root / "outputs" / "2026-06-19" / "science-knowledge.md",
-                root / "outputs" / "2026-06-19" / "math-training.html",
-                root / "outputs" / "2026-06-19" / "math-training-answers.html",
+                root / "outputs" / "2026-06-19" / "math-training.pdf",
+                root / "outputs" / "2026-06-19" / "math-training-answers.pdf",
                 root / "outputs" / "2026-06-19" / "math-knowledge.md",
                 root / "vault" / "20-错题归因" / "2026-06-19.md",
             )
@@ -53,8 +53,8 @@ class StudyProtocolCliTests(unittest.TestCase):
 
             expected = (
                 root / "outputs" / "2026-06-21" / "weekly-review.md",
-                root / "outputs" / "2026-06-21" / "weekly-review.html",
-                root / "outputs" / "2026-06-21" / "weekly-review-answers.html",
+                root / "outputs" / "2026-06-21" / "weekly-review.pdf",
+                root / "outputs" / "2026-06-21" / "weekly-review-answers.pdf",
                 root / "vault" / "40-复习计划" / "2026-06-21.md",
             )
             self.assertEqual(status, 0, stderr)
@@ -73,7 +73,7 @@ class StudyProtocolCliTests(unittest.TestCase):
                 (
                     "study-wrong",
                     "samples/wrong-question-training.json",
-                    output_root / "2026-06-19" / "wrong-question-training.html",
+                    output_root / "2026-06-19" / "wrong-question-training.pdf",
                 ),
                 (
                     "study-weekly-review",
