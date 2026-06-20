@@ -107,7 +107,7 @@ scripts/setup_ai_machine.sh
 这个脚本不是纯只读检查。它会做这些事：
 
 - 创建 `sources/raw/`、`sources/extracted/`、`outputs/` 和 Obsidian vault 目录。
-- 把项目 skill 安装到 `~/.codex/skills/fish-study-exam-paper/SKILL.md`。
+- 把 `.codex/skills/` 下的项目 skill 目录完整安装到 `~/.codex/skills/`，包括 `SKILL.md`、`scripts/` 和必要参考文件。
 - 检查 `python3`、`node`、`npm`、`codex`、`git`、`curl`、`shasum`。
 - 在 macOS 上检查 `sips` 和 `qlmanage`。
 - 检查 Python 模块 `pypdf`。
@@ -132,10 +132,13 @@ codex --version
 项目内自带并可由脚本安装：
 
 ```text
+.codex/skills/fish-study-photo-workflow/SKILL.md
 .codex/skills/fish-study-exam-paper/SKILL.md
+.codex/skills/gpt-image-2/SKILL.md
+.codex/skills/gpt-image-2/scripts/generate-image.sh
 ```
 
-还需要确认以下全局 skill 可用：
+运行 `scripts/setup_ai_machine.sh` 后，需要确认以下全局 skill 可用：
 
 | Skill | 用途 | 位置建议 |
 |---|---|---|
@@ -144,13 +147,7 @@ codex --version
 | `gpt-image-2` | 生成试卷正式配图 | `~/.codex/skills/gpt-image-2/` |
 | `playwright` 或等效浏览器控制能力 | 截图、PDF、视觉验证 | `~/.codex/skills/playwright/` 或工具内置 |
 
-如果新机器没有 `gpt-image-2` skill，需要从已有 Codex skill 库同步到：
-
-```text
-~/.codex/skills/gpt-image-2/SKILL.md
-```
-
-同步后重启 Codex 会话，让 skill 列表刷新。
+`gpt-image-2` skill 文件已随本仓库提交；不需要再从旧机器手工同步 skill 文件。目标机器仍需要安装并登录 Codex/Hermes OAuth 运行环境，因为该 skill 通过 `~/.hermes/hermes-agent/venv/bin/python` 调用本机 Hermes `openai-codex` 图片 provider。
 
 验收：
 
@@ -158,9 +155,10 @@ codex --version
 ls ~/.codex/skills/fish-study-photo-workflow/SKILL.md
 ls ~/.codex/skills/fish-study-exam-paper/SKILL.md
 ls ~/.codex/skills/gpt-image-2/SKILL.md
+ls ~/.codex/skills/gpt-image-2/scripts/generate-image.sh
 ```
 
-重启 Codex 会话后，让当前会话读取或使用 `fish-study-photo-workflow` 和 `fish-study-exam-paper`，并确认它们使用当前机器的 repo 路径，而不是旧路径。
+重启 Codex 会话后，让当前会话读取或使用 `fish-study-photo-workflow`、`fish-study-exam-paper` 和 `gpt-image-2`，并确认它们使用当前机器的 repo 路径，而不是旧路径。
 
 ### Node Playwright
 
@@ -381,8 +379,10 @@ PY
 检查文件是否存在：
 
 ```bash
+ls ~/.codex/skills/fish-study-photo-workflow/SKILL.md
 ls ~/.codex/skills/fish-study-exam-paper/SKILL.md
 ls ~/.codex/skills/gpt-image-2/SKILL.md
+ls ~/.codex/skills/gpt-image-2/scripts/generate-image.sh
 ```
 
 然后重启 Codex 会话。

@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VAULT="${FISH_STUDY_VAULT_ROOT:-$HOME/Downloads/obsidian/fish-study}"
 PROJECT_SKILLS_DIR="$ROOT/.codex/skills"
-GPT_IMAGE_SKILL="$HOME/.codex/skills/gpt-image-2/SKILL.md"
+INSTALLED_GPT_IMAGE_SKILL="$HOME/.codex/skills/gpt-image-2/SKILL.md"
 
 ok() {
   printf 'OK: %s\n' "$1"
@@ -35,18 +35,18 @@ if compgen -G "$PROJECT_SKILLS_DIR/*/SKILL.md" >/dev/null; then
   for skill_src in "$PROJECT_SKILLS_DIR"/*/SKILL.md; do
     skill_name="$(basename "$(dirname "$skill_src")")"
     skill_dir="$HOME/.codex/skills/$skill_name"
-    mkdir -p "$skill_dir"
-    cp "$skill_src" "$skill_dir/SKILL.md"
-    ok "installed $skill_name skill to $skill_dir/SKILL.md"
+    rm -rf "$skill_dir"
+    cp -R "$(dirname "$skill_src")" "$skill_dir"
+    ok "installed $skill_name skill to $skill_dir"
   done
 else
   warn "no project skills found under $PROJECT_SKILLS_DIR"
 fi
 
-if [[ -f "$GPT_IMAGE_SKILL" ]]; then
-  ok "gpt-image-2 skill found: $GPT_IMAGE_SKILL"
+if [[ -f "$INSTALLED_GPT_IMAGE_SKILL" ]]; then
+  ok "gpt-image-2 skill installed: $INSTALLED_GPT_IMAGE_SKILL"
 else
-  warn "gpt-image-2 skill missing. Sync it to $GPT_IMAGE_SKILL and restart Codex before generating illustrated exam papers."
+  warn "gpt-image-2 skill missing after install. Check project skill files under $PROJECT_SKILLS_DIR/gpt-image-2."
 fi
 
 need_command "python3" "Install Python 3.11+."
