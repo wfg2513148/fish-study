@@ -12,7 +12,14 @@
         "secondary_reason": "概念不清",
         "evidence": "原子结构题把原子核和电子层位置写反。",
         "confidence": "high",
-        "confirmation_status": "confirmed"
+        "confirmation_status": "confirmed",
+        "visual_mark": {
+          "color_detected": "红色圆形贴纸",
+          "color_normalized": "red",
+          "mark_type": "sticker",
+          "evidence": "题号旁有红色圆形贴纸，颜色边界清晰。",
+          "confidence": "high"
+        }
       },
       "matched_knowledge": [
         {
@@ -60,7 +67,14 @@
         "secondary_reason": "审题漏条件",
         "evidence": "题干给出平行线条件，但解题时没有使用同位角相等。",
         "confidence": "medium",
-        "confirmation_status": "needs_confirmation"
+        "confirmation_status": "needs_confirmation",
+        "visual_mark": {
+          "color_detected": "黄色荧光笔圈画",
+          "color_normalized": "yellow",
+          "mark_type": "circle",
+          "evidence": "题干关键条件被黄色圈出，但照片反光，需确认是否表示马虎。",
+          "confidence": "medium"
+        }
       },
       "matched_knowledge": [
         {
@@ -92,7 +106,14 @@
         "secondary_reason": "计算耗时",
         "evidence": "会列式但每一步计算停顿明显，最后两题未完成。",
         "confidence": "high",
-        "confirmation_status": "confirmed"
+        "confirmation_status": "confirmed",
+        "visual_mark": {
+          "color_detected": "蓝色记号笔下划线",
+          "color_normalized": "blue",
+          "mark_type": "underline",
+          "evidence": "题号和最后步骤旁有蓝色下划线，颜色稳定。",
+          "confidence": "high"
+        }
       },
       "matched_knowledge": [
         {

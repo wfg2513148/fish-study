@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from fish_study_wiki import settings
 from fish_study_wiki.knowledge_graph import merge_training_events
 from fish_study_wiki.models import safe_markdown_filename
 from fish_study_wiki.study_protocol_models import (
@@ -22,7 +23,7 @@ from fish_study_wiki.study_protocol_render import (
 
 
 DEFAULT_OUTPUT_ROOT = Path("outputs")
-DEFAULT_VAULT_ROOT = Path("/Users/kwang/Downloads/obsidian/fish-study")
+DEFAULT_VAULT_ROOT = settings.VAULT_ROOT
 
 
 @dataclass(frozen=True)
@@ -227,6 +228,7 @@ def _cluster_enters_long_term_stats(cluster: AnalysisCluster) -> bool:
     return (
         diagnosis.confidence == "high"
         and diagnosis.confirmation_status in {"auto", "confirmed"}
+        and diagnosis.sticker_color in {"red", "yellow", "blue"}
     )
 
 

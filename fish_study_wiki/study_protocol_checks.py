@@ -179,13 +179,16 @@ def _printable_path_present(printable_path: Path | str) -> CheckRow:
 def _sticker_rules_used(items: tuple[object, ...]) -> CheckRow:
     colors = {_sticker_color(item) for item in items}
     unknown = colors - STICKER_COLORS
-    passed = bool(colors) and not unknown
+    known = colors & {"red", "yellow", "blue"}
+    passed = bool(colors) and bool(known) and not unknown
     if unknown:
         message = f"存在未知贴纸颜色: {', '.join(sorted(unknown))}"
+    elif not known:
+        message = "缺少可自动归因的红黄蓝贴纸"
     elif not colors:
         message = "缺少红黄蓝贴纸归因"
     else:
-        message = "错题已使用红黄蓝贴纸归因规则"
+        message = "错题已使用红黄蓝贴纸归因规则，歧义颜色已隔离"
     return CheckRow(passed=passed, code="sticker_rules_used", message=message)
 
 
@@ -269,6 +272,7 @@ def _is_confirmed_for_statistics(item: object) -> bool:
     return (
         diagnosis.confirmation_status in {"auto", "confirmed"}
         and diagnosis.confidence == "high"
+        and diagnosis.sticker_color in {"red", "yellow", "blue"}
     )
 
 

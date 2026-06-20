@@ -7,7 +7,7 @@
 把下载或家长提供的 ZIP 放到：
 
 ```bash
-/Users/kwang/fish-study/sources/raw
+sources/raw
 ```
 
 文件名建议使用稳定的来源 ID，例如：
@@ -37,7 +37,7 @@ shasum -a 256 sources/raw/<source-id>.zip
   "version": "浙教版",
   "source_type": "courseware",
   "status": "available",
-  "local_path": "/Users/kwang/fish-study/sources/raw/<source-id>.zip",
+  "local_path": "sources/raw/<source-id>.zip",
   "sha256": "<sha256>"
 }
 ```
@@ -78,7 +78,7 @@ python3 -m fish_study_wiki.cli verify
 该命令会写入两份相同的报告：
 
 - `reports/wiki-quality.md`
-- `/Users/kwang/Downloads/obsidian/fish-study/00-入口/wiki-quality.md`
+- `$FISH_STUDY_VAULT_ROOT/00-入口/wiki-quality.md`
 
 报告必须保持 28 行覆盖矩阵。新增资料对应行应从 `missing_source` 变为 `verified` 或 `source_index`。如果出现 `ERROR`，先修复来源路径、SHA256、vault 索引、知识点生命周期字段或知识图谱，再提交。
 

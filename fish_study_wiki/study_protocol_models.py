@@ -7,7 +7,9 @@ from pathlib import Path
 from typing import Any
 
 
-STICKER_COLORS = {"red", "yellow", "blue"}
+STICKER_COLORS = {"red", "yellow", "blue", "unknown"}
+VISUAL_COLOR_VALUES = {"red", "yellow", "blue", "unknown"}
+MARK_TYPES = {"sticker", "marker", "circle", "underline", "unknown"}
 CONFIDENCE_VALUES = {"high", "medium", "low"}
 CONFIRMATION_STATUSES = {"auto", "needs_confirmation", "confirmed", "excluded"}
 DIFFICULTY_LEVELS = {"basic", "standard", "variant", "challenge"}
@@ -16,6 +18,7 @@ PRIMARY_REASONS_BY_COLOR = {
     "red": "不会",
     "yellow": "马虎",
     "blue": "时间不够",
+    "unknown": "待确认",
 }
 SECONDARY_REASONS_BY_COLOR = {
     "red": {"概念不清", "方法不会", "条件转化失败", "迁移失败"},
@@ -27,6 +30,7 @@ SECONDARY_REASONS_BY_COLOR = {
         "卡在第一步",
         "时间分配不当",
     },
+    "unknown": {"待确认"},
 }
 
 
@@ -51,6 +55,16 @@ class Diagnosis:
     evidence: str
     confidence: str
     confirmation_status: str
+    visual_mark: "VisualMark | None" = None
+
+
+@dataclass(frozen=True)
+class VisualMark:
+    color_detected: str
+    color_normalized: str
+    mark_type: str
+    evidence: str
+    confidence: str
 
 
 @dataclass(frozen=True)
@@ -210,6 +224,9 @@ def _diagnosis(data: dict[str, Any]) -> Diagnosis:
     )
     _validate_reason_pair(sticker_color, primary_reason, secondary_reason)
     _validate_confirmation(confidence, confirmation_status)
+    _validate_unknown_diagnosis(sticker_color, confidence, confirmation_status)
+    visual_mark = _optional_visual_mark(data.get("visual_mark"))
+    _validate_visual_mark_mapping(sticker_color, visual_mark)
     return Diagnosis(
         sticker_color=sticker_color,
         primary_reason=primary_reason,
@@ -217,6 +234,24 @@ def _diagnosis(data: dict[str, Any]) -> Diagnosis:
         evidence=str(data.get("evidence", "")),
         confidence=confidence,
         confirmation_status=confirmation_status,
+        visual_mark=visual_mark,
+    )
+
+
+def _optional_visual_mark(data: Any) -> VisualMark | None:
+    if data is None:
+        return None
+    data = _object(data, "visual mark")
+    return VisualMark(
+        color_detected=str(data.get("color_detected", "")),
+        color_normalized=_known_value(
+            "color_normalized",
+            data.get("color_normalized", ""),
+            VISUAL_COLOR_VALUES,
+        ),
+        mark_type=_known_value("mark_type", data.get("mark_type", ""), MARK_TYPES),
+        evidence=str(data.get("evidence", "")),
+        confidence=_known_value("confidence", data.get("confidence", ""), CONFIDENCE_VALUES),
     )
 
 
@@ -353,6 +388,33 @@ def _validate_confirmation(confidence: str, confirmation_status: str) -> None:
         raise ValueError("low confidence diagnosis must need confirmation")
     if confidence == "medium" and confirmation_status == "auto":
         raise ValueError("medium confidence diagnosis cannot be auto-confirmed")
+
+
+def _validate_unknown_diagnosis(
+    sticker_color: str,
+    confidence: str,
+    confirmation_status: str,
+) -> None:
+    if sticker_color != "unknown":
+        return
+    if confidence == "high" or confirmation_status != "needs_confirmation":
+        raise ValueError("unknown color diagnosis must need confirmation")
+
+
+def _validate_visual_mark_mapping(
+    sticker_color: str,
+    visual_mark: VisualMark | None,
+) -> None:
+    if visual_mark is None:
+        return
+    if visual_mark.color_normalized != sticker_color:
+        raise ValueError(
+            "visual_mark.color_normalized must match sticker_color; "
+            "use unknown for ambiguous colors"
+        )
+    if visual_mark.color_normalized == "unknown":
+        if visual_mark.confidence == "high":
+            raise ValueError("unknown visual color cannot have high confidence")
 
 
 def _known_secondary_reason(value: str) -> str:

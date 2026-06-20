@@ -49,23 +49,46 @@
 | 黄色 | 马虎 | 审题漏条件、计算错、单位符号错、步骤写漏 |
 | 蓝色 | 时间不够 | 会做但慢、卡第一步、计算太久、时间分配不合理 |
 
-### 第 2 步：打开项目目录
+其他颜色、混合颜色、拍照偏色、看不清颜色，先不要自动判断错因，交给 Codex 放进“待确认”。
+
+### 第 2 步：上传错题照片给 Codex
+
+在 Codex Desktop 里上传照片，然后只说：
+
+```text
+帮我生成错题知识点和测试题
+```
+
+Codex 应使用 `.codex/skills/fish-study-photo-workflow/SKILL.md`，自动读取知识库范围、识别红黄蓝标注、生成训练卷和答案页。家长不需要手写 JSON。
+
+### 第 3 步：拿到训练材料
+
+成功后会生成：
+
+- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
+- 家长答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
+- Obsidian 错题记录：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
+
+学生只看训练卷。答案页给家长批改，不要提前给孩子。
+
+## AI 或工程人员备用流程
+
+如果需要手动排查，可以用下面的命令。
+
+打开项目目录：
 
 ```bash
 cd /path/to/fish-study
 ```
 
-### 第 3 步：先看当前知识库范围
+查看当前知识库范围：
 
 ```bash
 python3 -m fish_study_wiki.cli study-context
 ```
 
-把这段输出复制给 Codex Desktop，作为它分析照片前的上下文。
+让 Codex 生成结构化输入时，可以说：
 
-### 第 4 步：上传错题照片给 Codex
-
-在 Codex Desktop 里说：
 
 ```text
 请基于当前 Fish Study 知识库上下文，分析这些贴了红黄蓝标签的错题。
@@ -79,19 +102,11 @@ python3 -m fish_study_wiki.cli study-context
 samples/wrong-question-training.json
 ```
 
-### 第 5 步：生成训练卷和答案页
+生成训练卷和答案页：
 
 ```bash
 python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 ```
-
-成功后会生成：
-
-- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
-- 家长答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
-- Obsidian 错题记录：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
-
-学生只看训练卷。答案页给家长批改，不要提前给孩子。
 
 ## 每周怎么用
 

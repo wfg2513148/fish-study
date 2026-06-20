@@ -10,7 +10,7 @@
 
 - Fish Study CLI 可运行：`study-context`、`verify`、`pytest` 通过。
 - Obsidian vault 写入当前机器指定路径，不写回旧机器路径。
-- `fish-study-exam-paper` 和 `gpt-image-2` 在 Codex 会话中可用。
+- `fish-study-photo-workflow`、`fish-study-exam-paper` 和 `gpt-image-2` 在 Codex 会话中可用。
 - Playwright 可导出带嵌图和页脚页码的 PDF。
 - 原始 ZIP、PDF、课件和扫描图只保存在本机，不提交 Git。
 
@@ -138,6 +138,7 @@ codex --version
 
 | Skill | 用途 | 位置建议 |
 |---|---|---|
+| `fish-study-photo-workflow` | 家长上传错题照片后一键生成知识点和训练卷 | `~/.codex/skills/fish-study-photo-workflow/` |
 | `fish-study-exam-paper` | 真实试卷、PDF、配图、交付规则 | `~/.codex/skills/fish-study-exam-paper/` |
 | `gpt-image-2` | 生成试卷正式配图 | `~/.codex/skills/gpt-image-2/` |
 | `playwright` 或等效浏览器控制能力 | 截图、PDF、视觉验证 | `~/.codex/skills/playwright/` 或工具内置 |
@@ -153,11 +154,12 @@ codex --version
 验收：
 
 ```bash
+ls ~/.codex/skills/fish-study-photo-workflow/SKILL.md
 ls ~/.codex/skills/fish-study-exam-paper/SKILL.md
 ls ~/.codex/skills/gpt-image-2/SKILL.md
 ```
 
-重启 Codex 会话后，让当前会话读取或使用 `fish-study-exam-paper`，并确认它使用当前机器的 repo 路径，而不是旧路径。
+重启 Codex 会话后，让当前会话读取或使用 `fish-study-photo-workflow` 和 `fish-study-exam-paper`，并确认它们使用当前机器的 repo 路径，而不是旧路径。
 
 ### Node Playwright
 

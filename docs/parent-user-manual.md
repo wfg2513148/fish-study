@@ -36,59 +36,27 @@
 | 黄色 | 马虎 | 审题漏条件、计算错、单位符号错、步骤写漏 |
 | 蓝色 | 时间不够 | 会做但慢、卡第一步、计算耗时、时间分配不合理 |
 
-### 第二步：先取当前知识库上下文
+其他颜色、混合颜色、拍照偏色、看不清颜色，先不要自动判断错因，交给 Codex 放进“待确认项”。
 
-在项目目录运行：
+### 第二步：上传照片并说一句话
 
-```bash
-python3 -m fish_study_wiki.cli study-context
-```
-
-你会看到类似这样的内容：
+在 Codex Desktop 里上传错题照片，然后只说：
 
 ```text
-当前可用资料：3 套
-
-- 七年级下册数学：浙教版，知识点笔记 112 篇
-- 七年级下册科学：浙教版，知识点笔记 84 篇
-- 七年级下册英语：人教版，知识点笔记 53 篇
-
-只基于上述可用资料定位知识点；没有资料的学科不要猜。
+帮我生成错题知识点和测试题
 ```
 
-把这段输出作为 Codex Desktop 的上下文，再上传错题照片。
+Codex 会自动读取当前知识库范围、识别照片里的红黄蓝标注、整理错因、生成训练卷和答案页。家长不需要写 JSON，也不需要运行命令。
 
-### 第三步：让 Codex 生成结构化错题数据
+如果 Codex 看不清题目、颜色或知识点，它应该把这部分列为“待确认”，不要硬猜。
 
-在 Codex Desktop 里说：
+### 第三步：拿到学生训练卷和答案页
 
-```text
-请基于当前 Fish Study 知识库上下文，分析这些贴了红黄蓝标签的错题。
-生成 wrong_question_training JSON。
-看不清或知识点不确定的题，不要猜，放入 uncertain_items。
-```
+Codex 处理成功后会输出这些文件路径：
 
-生成的 JSON 可以参考：
-
-```text
-samples/wrong-question-training.json
-```
-
-### 第四步：生成学生训练卷和答案页
-
-运行：
-
-```bash
-python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
-```
-
-成功后会输出这些文件路径：
-
-```text
-outputs/YYYY-MM-DD/wrong-question-training.html
-outputs/YYYY-MM-DD/wrong-question-training-answers.html
-/Users/kwang/Downloads/obsidian/fish-study/20-错题归因/YYYY-MM-DD.md
-```
+- 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
+- 家长答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
+- Obsidian 错题记录：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
 
 学生只看训练卷：
 
@@ -127,7 +95,7 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 outputs/YYYY-MM-DD/weekly-review.md
 outputs/YYYY-MM-DD/weekly-review.html
 outputs/YYYY-MM-DD/weekly-review-answers.html
-/Users/kwang/Downloads/obsidian/fish-study/40-复习计划/YYYY-MM-DD.md
+$FISH_STUDY_VAULT_ROOT/40-复习计划/YYYY-MM-DD.md
 ```
 
 周巩固测试卷长这样：
@@ -159,15 +127,15 @@ outputs/YYYY-MM-DD/weekly-review-answers.html
 在 Obsidian 里看：
 
 ```text
-/Users/kwang/Downloads/obsidian/fish-study/20-错题归因/
-/Users/kwang/Downloads/obsidian/fish-study/40-复习计划/
-/Users/kwang/Downloads/obsidian/fish-study/10-教材Wiki/
+$FISH_STUDY_VAULT_ROOT/20-错题归因/
+$FISH_STUDY_VAULT_ROOT/40-复习计划/
+$FISH_STUDY_VAULT_ROOT/10-教材Wiki/
 ```
 
 建议从这个入口打开：
 
 ```text
-/Users/kwang/Downloads/obsidian/fish-study/00-入口/Fish Study 首页.md
+$FISH_STUDY_VAULT_ROOT/00-入口/Fish Study 首页.md
 ```
 
 ## 什么时候不要继续生成

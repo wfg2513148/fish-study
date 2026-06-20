@@ -17,12 +17,14 @@ COLOR_LABELS = {
     "red": "红色",
     "yellow": "黄色",
     "blue": "蓝色",
+    "unknown": "待确认颜色",
 }
 
 COLOR_STRATEGIES = {
     "red": "先补知识点，再做基础题和少量标准题。",
     "yellow": "先圈条件，再按审题、单位、符号、计算、书写顺序检查。",
     "blue": "做限时训练，先写步骤模板，再判断优先完成路径。",
+    "unknown": "先确认照片标注和题目归因，再决定训练方式。",
 }
 
 DIFFICULTY_LABELS = {
@@ -87,6 +89,7 @@ def render_weekly_review_markdown(source: WeeklyReviewSource) -> str:
 - 红色（不会）：{color_counts["red"]} 组
 - 黄色（马虎）：{color_counts["yellow"]} 组
 - 蓝色（时间不够）：{color_counts["blue"]} 组
+- 待确认颜色：{color_counts["unknown"]} 组
 
 ## 反复知识点
 

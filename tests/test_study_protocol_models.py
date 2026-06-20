@@ -18,6 +18,11 @@ class StudyProtocolModelTests(unittest.TestCase):
         self.assertEqual(training.task_type, "wrong_question_training")
         self.assertEqual(training.date, "2026-06-19")
         self.assertEqual(training.clusters[0].diagnosis.sticker_color, "red")
+        self.assertEqual(
+            training.clusters[0].diagnosis.visual_mark.color_normalized,
+            "red",
+        )
+        self.assertEqual(training.clusters[1].diagnosis.visual_mark.mark_type, "circle")
         self.assertEqual(training.clusters[1].diagnosis.sticker_color, "yellow")
         self.assertEqual(training.clusters[2].diagnosis.sticker_color, "blue")
         self.assertEqual(training.clusters[0].training_questions[0].difficulty, "basic")
@@ -74,6 +79,58 @@ class StudyProtocolModelTests(unittest.TestCase):
     def test_secondary_reason_must_match_sticker_color(self):
         data = _sample_training()
         data["clusters"][0]["diagnosis"]["secondary_reason"] = "计算错误"
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_visual_mark_color_must_match_diagnosis_color(self):
+        data = _sample_training()
+        data["clusters"][0]["diagnosis"]["visual_mark"] = {
+            "color_detected": "黄色贴纸",
+            "color_normalized": "yellow",
+            "mark_type": "sticker",
+            "evidence": "题号旁看似黄色。",
+            "confidence": "high",
+        }
+
+        with self.assertRaises(ValueError):
+            load_wrong_question_training(_write_json(data))
+
+    def test_unknown_visual_color_requires_pending_confirmation(self):
+        data = _sample_training()
+        diagnosis = data["clusters"][0]["diagnosis"]
+        diagnosis["sticker_color"] = "unknown"
+        diagnosis["primary_reason"] = "待确认"
+        diagnosis["secondary_reason"] = "待确认"
+        diagnosis["confidence"] = "low"
+        diagnosis["confirmation_status"] = "needs_confirmation"
+        diagnosis["visual_mark"] = {
+            "color_detected": "绿色贴纸",
+            "color_normalized": "unknown",
+            "mark_type": "sticker",
+            "evidence": "绿色不属于红黄蓝自动归因规则。",
+            "confidence": "low",
+        }
+
+        training = load_wrong_question_training(_write_json(data))
+
+        self.assertEqual(training.clusters[0].diagnosis.sticker_color, "unknown")
+
+    def test_unknown_visual_color_cannot_be_confirmed(self):
+        data = _sample_training()
+        diagnosis = data["clusters"][0]["diagnosis"]
+        diagnosis["sticker_color"] = "unknown"
+        diagnosis["primary_reason"] = "待确认"
+        diagnosis["secondary_reason"] = "待确认"
+        diagnosis["confidence"] = "medium"
+        diagnosis["confirmation_status"] = "confirmed"
+        diagnosis["visual_mark"] = {
+            "color_detected": "绿色贴纸",
+            "color_normalized": "unknown",
+            "mark_type": "sticker",
+            "evidence": "绿色不属于红黄蓝自动归因规则。",
+            "confidence": "medium",
+        }
 
         with self.assertRaises(ValueError):
             load_wrong_question_training(_write_json(data))

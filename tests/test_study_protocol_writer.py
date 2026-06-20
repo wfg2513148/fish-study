@@ -2,11 +2,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from fish_study_wiki import settings
 from fish_study_wiki.study_protocol_models import (
     load_weekly_review_source,
     load_wrong_question_training,
 )
 from fish_study_wiki.study_protocol_writer import (
+    DEFAULT_VAULT_ROOT,
     write_training_outputs,
     write_weekly_review_outputs,
 )
@@ -24,6 +26,9 @@ def weekly_sample():
 
 
 class StudyProtocolWriterTests(unittest.TestCase):
+    def test_default_vault_root_uses_settings_path(self):
+        self.assertEqual(DEFAULT_VAULT_ROOT, settings.VAULT_ROOT)
+
     def test_training_outputs_write_student_answer_and_obsidian_note(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

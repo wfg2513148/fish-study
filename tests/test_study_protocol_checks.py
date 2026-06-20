@@ -8,6 +8,7 @@ from fish_study_wiki.study_protocol_checks import (
 )
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
+    VisualMark,
     KnowledgeMatch,
     load_weekly_review_source,
     load_wrong_question_training,
@@ -83,6 +84,40 @@ class StudyProtocolCheckTests(unittest.TestCase):
 
         row = next(row for row in rows if row.code == "pending_items_are_uncertain")
         self.assertFalse(row.passed)
+
+    def test_unknown_color_must_be_uncertain(self):
+        training = daily_training()
+        unknown = _unknown_color_cluster(training.clusters[0])
+        rows = check_wrong_question_training(
+            replace(training, clusters=(unknown,) + training.clusters[1:], uncertain_items=()),
+            "错题分析训练卷",
+            "参考答案",
+            "wrong.html",
+            "answers.html",
+        )
+
+        row = next(row for row in rows if row.code == "pending_items_are_uncertain")
+        self.assertFalse(row.passed)
+
+    def test_unknown_color_passes_when_isolated_with_known_colors(self):
+        training = daily_training()
+        unknown = _unknown_color_cluster(training.clusters[0])
+        rows = check_wrong_question_training(
+            replace(
+                training,
+                clusters=(unknown,) + training.clusters[1:],
+                uncertain_items=(
+                    "科学 概念识别 待确认：绿色贴纸不属于红黄蓝规则",
+                    "数学 角关系计算 审题漏条件 待确认",
+                ),
+            ),
+            "错题分析训练卷",
+            "参考答案",
+            "wrong.html",
+            "answers.html",
+        )
+
+        self.assertTrue(all(row.passed for row in rows))
 
     def test_broad_uncertain_item_does_not_confirm_pending_cluster(self):
         training = daily_training()
@@ -214,6 +249,25 @@ def _replace_knowledge(cluster: AnalysisCluster, note: str) -> AnalysisCluster:
             ),
         ),
     )
+
+
+def _unknown_color_cluster(cluster: AnalysisCluster) -> AnalysisCluster:
+    diagnosis = replace(
+        cluster.diagnosis,
+        sticker_color="unknown",
+        primary_reason="待确认",
+        secondary_reason="待确认",
+        confidence="low",
+        confirmation_status="needs_confirmation",
+        visual_mark=VisualMark(
+            color_detected="绿色贴纸",
+            color_normalized="unknown",
+            mark_type="sticker",
+            evidence="绿色不属于红黄蓝自动归因规则。",
+            confidence="low",
+        ),
+    )
+    return replace(cluster, diagnosis=diagnosis)
 
 
 if __name__ == "__main__":

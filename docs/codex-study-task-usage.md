@@ -7,6 +7,32 @@
 - 日常：贴好红黄蓝标签的错题照片 -> 错因分析训练卷。
 - 每周：结构化错题数据 -> 周复盘报告和巩固测试。
 
+## 家长最简入口
+
+家长或学生不需要运行命令，也不需要填写 JSON。
+
+在 Codex 中上传错题照片后，只说：
+
+```text
+帮我生成错题知识点和测试题
+```
+
+Codex 应自动完成：
+
+1. 读取当前知识库范围。
+2. 视觉识别照片中的题目和颜色标注。
+3. 按红黄蓝规则归类错因。
+4. 对看不清、绿色、偏色、多色、无明确颜色的标注列入待确认。
+5. 生成结构化 `wrong_question_training` JSON。
+6. 调用 CLI 输出学生训练卷、答案页和 Obsidian 记录。
+7. 用 Markdown 绝对路径文件链接返回结果。
+
+推荐 Codex 使用项目 skill：
+
+```text
+fish-study-photo-workflow
+```
+
 开始分析前，先输出当前可用资料范围：
 
 ```bash
@@ -17,11 +43,12 @@ python3 -m fish_study_wiki.cli study-context
 
 ## 日常错题训练
 
-家长先和孩子在线下看错题，并只用红黄蓝标记一级错因：
+家长先和孩子在线下看错题，并尽量只用红黄蓝标记一级错因：
 
 - 红色：不会，表示知识、方法或迁移能力不足。
 - 黄色：马虎，表示审题、计算、符号、单位或书写问题。
 - 蓝色：时间不够，表示速度、路径选择或时间分配问题。
+- 其他颜色、混合颜色、拍照偏色、看不清颜色：不自动归因，进入待确认项。
 
 在 Codex Desktop 上传照片后，可以说：
 
@@ -29,7 +56,7 @@ python3 -m fish_study_wiki.cli study-context
 帮我生成错题知识点和测试题
 ```
 
-Codex 需要把照片结果整理成 `wrong_question_training` JSON，可参考：
+Codex 需要在后台把照片结果整理成 `wrong_question_training` JSON，可参考：
 
 ```bash
 samples/wrong-question-training.json
@@ -51,8 +78,8 @@ python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 
 - 学生训练卷：`outputs/YYYY-MM-DD/wrong-question-training.html`
 - 批改答案页：`outputs/YYYY-MM-DD/wrong-question-training-answers.html`
-- Obsidian 错题归因：`/Users/kwang/Downloads/obsidian/fish-study/20-错题归因/YYYY-MM-DD.md`
-- Obsidian 知识点事件：`/Users/kwang/Downloads/obsidian/fish-study/10-教材Wiki/.../*.md`
+- Obsidian 错题归因：`$FISH_STUDY_VAULT_ROOT/20-错题归因/YYYY-MM-DD.md`
+- Obsidian 知识点事件：`$FISH_STUDY_VAULT_ROOT/10-教材Wiki/.../*.md`
 - 本地知识图谱事件：`data/wiki/knowledge-graph.json`
 
 学生训练卷不包含答案、参考答案、解析或解答。答案页单独保存，用于家长批改和下一次难度调整。
@@ -67,7 +94,7 @@ python3 -m fish_study_wiki.cli study-wrong samples/wrong-question-training.json
 帮我生成本周错题复盘和巩固测试
 ```
 
-Codex 需要整理成 `weekly_review` JSON，可参考：
+Codex 在后台整理成 `weekly_review` JSON，可参考：
 
 ```bash
 samples/weekly-review-source.json
@@ -90,7 +117,7 @@ python3 -m fish_study_wiki.cli study-weekly-review samples/weekly-review-source.
 - 周复盘报告：`outputs/YYYY-MM-DD/weekly-review.md`
 - 周巩固测试卷：`outputs/YYYY-MM-DD/weekly-review.html`
 - 周巩固答案页：`outputs/YYYY-MM-DD/weekly-review-answers.html`
-- Obsidian 复习计划：`/Users/kwang/Downloads/obsidian/fish-study/40-复习计划/YYYY-MM-DD.md`
+- Obsidian 复习计划：`$FISH_STUDY_VAULT_ROOT/40-复习计划/YYYY-MM-DD.md`
 
 周复盘报告包含错因分布、反复知识点、高频二级错因、难度是否合适、遗忘风险、复测队列和下周优先级。
 

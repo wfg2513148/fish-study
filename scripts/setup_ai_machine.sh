@@ -3,8 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VAULT="${FISH_STUDY_VAULT_ROOT:-$HOME/Downloads/obsidian/fish-study}"
-SKILL_SRC="$ROOT/.codex/skills/fish-study-exam-paper/SKILL.md"
-SKILL_DIR="$HOME/.codex/skills/fish-study-exam-paper"
+PROJECT_SKILLS_DIR="$ROOT/.codex/skills"
 GPT_IMAGE_SKILL="$HOME/.codex/skills/gpt-image-2/SKILL.md"
 
 ok() {
@@ -30,13 +29,18 @@ mkdir -p \
   "$ROOT/sources/extracted" \
   "$ROOT/outputs" \
   "$VAULT" \
-  "$SKILL_DIR"
+  "$HOME/.codex/skills"
 
-if [[ -f "$SKILL_SRC" ]]; then
-  cp "$SKILL_SRC" "$SKILL_DIR/SKILL.md"
-  ok "installed fish-study-exam-paper skill to $SKILL_DIR/SKILL.md"
+if compgen -G "$PROJECT_SKILLS_DIR/*/SKILL.md" >/dev/null; then
+  for skill_src in "$PROJECT_SKILLS_DIR"/*/SKILL.md; do
+    skill_name="$(basename "$(dirname "$skill_src")")"
+    skill_dir="$HOME/.codex/skills/$skill_name"
+    mkdir -p "$skill_dir"
+    cp "$skill_src" "$skill_dir/SKILL.md"
+    ok "installed $skill_name skill to $skill_dir/SKILL.md"
+  done
 else
-  warn "project skill not found at $SKILL_SRC"
+  warn "no project skills found under $PROJECT_SKILLS_DIR"
 fi
 
 if [[ -f "$GPT_IMAGE_SKILL" ]]; then
