@@ -48,6 +48,16 @@ that remain readable after PDF printing:
 - Add `filling most of the page width` and `minimal empty margins`.
 - Prefer letter labels such as `A B C D` over long generated text inside the
   image.
+- When reconstructing a figure from a source photo, do not ask the model to
+  redesign the diagram. The prompt must lock the source figure's object count,
+  grouping, labels, data values, axis names, relative positions, and
+  experiment-control relationships.
+- Do not add text that was not present in the original figure. If the original
+  figure has Chinese labels, keep those labels in Chinese and do not translate
+  or paraphrase them.
+- Only optimize line clarity, print contrast, alignment, and A4 readability.
+  Never simplify away key details, such as controlled-experiment groups,
+  repeated objects, table values, scale marks, or graph series.
 - Avoid portrait compositions for microscopes, plants, soil profiles, maps,
   charts, and experimental apparatus. If the subject is naturally tall, place it
   diagonally, use an inset, or spread the structure across a landscape canvas.

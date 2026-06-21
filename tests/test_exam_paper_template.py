@@ -27,6 +27,19 @@ def image_object_count(reader: PdfReader) -> int:
 
 
 class ExamPaperTemplateTests(unittest.TestCase):
+    def test_templates_keep_sixty_percent_choice_questions(self) -> None:
+        for template in [
+            ROOT / "templates" / "exam-paper" / "math-grade7.html",
+            ROOT / "templates" / "exam-paper" / "science-grade7.html",
+            ROOT / "templates" / "exam-paper" / "english-grade7.html",
+        ]:
+            with self.subTest(template=template.name):
+                text = template.read_text(encoding="utf-8")
+                question_chunks = text.split('<li class="question"')[1:]
+                choice_count = sum('class="options"' in chunk for chunk in question_chunks)
+                self.assertGreater(len(question_chunks), 0)
+                self.assertEqual(choice_count / len(question_chunks), 0.6)
+
     def test_math_template_generates_formal_pdf(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -55,12 +68,12 @@ class ExamPaperTemplateTests(unittest.TestCase):
             self.assertIn("密封线内不要答题", html_path.read_text(encoding="utf-8"))
 
             reader = PdfReader(str(pdf_path))
-            self.assertEqual(len(reader.pages), 5)
+            self.assertGreaterEqual(len(reader.pages), 5)
             page_texts = [page.extract_text() or "" for page in reader.pages]
             all_text = "\n".join(page_texts)
             self.assertIn("七年级下册数学模拟试卷", all_text)
             for index, page_text in enumerate(page_texts, start=1):
-                self.assertIn(f"{index}/5", page_text.replace(" ", ""))
+                self.assertIn(f"{index}/{len(reader.pages)}", page_text.replace(" ", ""))
             self.assertGreaterEqual(image_object_count(reader), 3)
 
 

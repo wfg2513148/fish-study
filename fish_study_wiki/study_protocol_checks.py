@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
@@ -15,6 +16,29 @@ from fish_study_wiki.study_protocol_models import (
 
 
 ANSWER_MARKERS = ("答案", "参考答案", "解析", "解答")
+KNOWLEDGE_CARD_FORBIDDEN_PATTERNS = (
+    r"photo-",
+    r"照片",
+    r"来源",
+    r"文件名",
+    r"第[0-9一二三四五六七八九十]+题",
+    r"本题",
+    r"本次错题",
+    r"这道题",
+    r"题目中",
+    r"根据照片",
+    r"错因",
+    r"依据",
+    r"诊断",
+    r"训练建议",
+    r"难度梯度",
+    r"红色",
+    r"黄色",
+    r"蓝色",
+    r"sticker",
+    r"source_batch",
+    r"question_id",
+)
 
 
 @dataclass(frozen=True)
@@ -66,6 +90,19 @@ def check_weekly_review(
     )
 
 
+def check_subject_knowledge_cards_output(
+    markdown_output: str,
+    html_output: str,
+) -> tuple[CheckRow, ...]:
+    return (
+        _knowledge_card_has_title(markdown_output, html_output),
+        _knowledge_card_has_diagram(html_output),
+        _knowledge_card_image_labels_are_concept_only(html_output),
+        _knowledge_card_no_forbidden_text(markdown_output, "markdown"),
+        _knowledge_card_no_forbidden_text(html_output, "html"),
+    )
+
+
 def _no_answers_in_student_output(student_output: str) -> CheckRow:
     leaked = [marker for marker in ANSWER_MARKERS if marker in student_output]
     return CheckRow(
@@ -85,6 +122,78 @@ def _answer_page_contains_answers(answer_output: str) -> CheckRow:
         passed=bool(present),
         code="answer_page_contains_answers",
         message="答案页包含答案标记" if present else "答案页缺少答案标记",
+    )
+
+
+def _knowledge_card_has_title(markdown_output: str, html_output: str) -> CheckRow:
+    passed = "知识点复习卡" in markdown_output and "知识点复习卡" in html_output
+    return CheckRow(
+        passed=passed,
+        code="knowledge_card_has_title",
+        message="知识点复习卡标题存在" if passed else "知识点复习卡标题缺失",
+    )
+
+
+def _knowledge_card_has_diagram(html_output: str) -> CheckRow:
+    passed = (
+        ("<img" not in html_output or 'data-generator="gpt-image-2"' in html_output)
+        and "<svg" not in html_output
+        and "原题" not in html_output
+        and "配图待生成" not in html_output
+    )
+    return CheckRow(
+        passed=passed,
+        code="knowledge_card_has_diagram",
+        message=(
+            "知识点卡片未使用占位图或非 gpt-image-2 图片"
+            if passed
+            else "知识点卡片仍使用占位图、SVG 或非 gpt-image-2 图片"
+        ),
+    )
+
+
+def _knowledge_card_no_forbidden_text(output: str, label: str) -> CheckRow:
+    leaked = forbidden_knowledge_card_matches(output)
+    return CheckRow(
+        passed=not leaked,
+        code=f"knowledge_card_no_forbidden_text_{label}",
+        message=(
+            f"{label} 未发现题号/照片/错因等诊断噪声"
+            if not leaked
+            else f"{label} 疑似包含诊断噪声: {', '.join(leaked)}"
+        ),
+    )
+
+
+def _knowledge_card_image_labels_are_concept_only(html_output: str) -> CheckRow:
+    image_labels = tuple(
+        re.findall(r'alt="([^"]*)"', html_output)
+        + re.findall(r"<figcaption>(.*?)</figcaption>", html_output, flags=re.S)
+    )
+    leaked = tuple(
+        label.strip()
+        for label in image_labels
+        if re.search(
+            r"第[0-9一二三四五六七八九十]+(?:章|节|课时)|专题[0-9一二三四五六七八九十]+",
+            label,
+        )
+    )
+    return CheckRow(
+        passed=not leaked,
+        code="knowledge_card_image_labels_are_concept_only",
+        message=(
+            "知识点图片标签未发现章节节次说明"
+            if not leaked
+            else f"知识点图片标签包含章节节次说明: {', '.join(leaked)}"
+        ),
+    )
+
+
+def forbidden_knowledge_card_matches(output: str) -> tuple[str, ...]:
+    return tuple(
+        pattern
+        for pattern in KNOWLEDGE_CARD_FORBIDDEN_PATTERNS
+        if re.search(pattern, output, flags=re.I)
     )
 
 

@@ -4,9 +4,14 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from fish_study_wiki import settings
+from fish_study_wiki.knowledge_card_images import prepare_knowledge_card_diagrams
 from fish_study_wiki.knowledge_graph import merge_training_events
 from fish_study_wiki.models import safe_markdown_filename
 from fish_study_wiki.pdf_export import write_pdf_from_html
+from fish_study_wiki.study_protocol_checks import (
+    CheckRow,
+    check_subject_knowledge_cards_output,
+)
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
     KnowledgeMatch,
@@ -15,7 +20,8 @@ from fish_study_wiki.study_protocol_models import (
 )
 from fish_study_wiki.study_protocol_render import (
     COLOR_LABELS,
-    render_subject_knowledge_markdown,
+    render_subject_knowledge_cards_html,
+    render_subject_knowledge_cards_markdown,
     render_training_answer_html,
     render_training_student_html,
     render_weekly_answer_html,
@@ -39,6 +45,7 @@ class SubjectTrainingWriteResult:
     student_pdf: Path
     answer_pdf: Path
     knowledge_markdown: Path
+    knowledge_pdf: Path
 
 
 @dataclass(frozen=True)
@@ -137,6 +144,7 @@ def _write_subject_training_outputs(
         student_pdf = output_dir / f"{slug}-training.pdf"
         answer_pdf = output_dir / f"{slug}-training-answers.pdf"
         knowledge_markdown = output_dir / f"{slug}-knowledge.md"
+        knowledge_pdf = output_dir / f"{slug}-knowledge.pdf"
         write_pdf_from_html(
             render_training_student_html(subject_training),
             student_pdf,
@@ -145,19 +153,42 @@ def _write_subject_training_outputs(
             render_training_answer_html(subject_training),
             answer_pdf,
         )
-        knowledge_markdown.write_text(
-            render_subject_knowledge_markdown(training, subject),
-            encoding="utf-8",
+        diagram_assets = prepare_knowledge_card_diagrams(training, subject, output_dir)
+        knowledge_markdown_text = render_subject_knowledge_cards_markdown(
+            training,
+            subject,
+            diagram_assets,
         )
+        knowledge_html = render_subject_knowledge_cards_html(
+            training,
+            subject,
+            diagram_assets,
+        )
+        _ensure_checks_pass(
+            check_subject_knowledge_cards_output(
+                knowledge_markdown_text,
+                knowledge_html,
+            )
+        )
+        knowledge_markdown.write_text(knowledge_markdown_text, encoding="utf-8")
+        write_pdf_from_html(knowledge_html, knowledge_pdf)
         outputs.append(
             SubjectTrainingWriteResult(
                 subject=subject,
                 student_pdf=student_pdf,
                 answer_pdf=answer_pdf,
                 knowledge_markdown=knowledge_markdown,
+                knowledge_pdf=knowledge_pdf,
             )
         )
     return tuple(outputs)
+
+
+def _ensure_checks_pass(rows: tuple[CheckRow, ...]) -> None:
+    failed = tuple(row for row in rows if not row.passed)
+    if failed:
+        messages = "; ".join(f"{row.code}: {row.message}" for row in failed)
+        raise ValueError(f"知识点复习卡校验失败：{messages}")
 
 
 def _training_subjects(clusters: tuple[AnalysisCluster, ...]) -> tuple[str, ...]:

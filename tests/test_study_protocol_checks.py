@@ -3,8 +3,10 @@ from dataclasses import replace
 from pathlib import Path
 
 from fish_study_wiki.study_protocol_checks import (
+    check_subject_knowledge_cards_output,
     check_weekly_review,
     check_wrong_question_training,
+    forbidden_knowledge_card_matches,
 )
 from fish_study_wiki.study_protocol_models import (
     AnalysisCluster,
@@ -250,6 +252,48 @@ class StudyProtocolCheckTests(unittest.TestCase):
         )
 
         row = next(row for row in rows if row.code == "training_questions_present")
+        self.assertFalse(row.passed)
+
+    def test_knowledge_card_output_passes_when_student_facing(self):
+        rows = check_subject_knowledge_cards_output(
+            "# 数学 知识点复习卡\n\n## 1. 平行线的性质与判定\n",
+            '<h1>数学 知识点复习卡</h1><img src="file:///tmp/a.png" data-generator="gpt-image-2"><p>同位角相等</p>',
+        )
+
+        self.assertTrue(all(row.passed for row in rows))
+
+    def test_knowledge_card_output_rejects_source_and_diagnosis_noise(self):
+        noisy_text = "# 科学 知识点复习卡\nphoto-001 第1题 错因 红色 训练建议"
+        noisy_html = '<h1>科学 知识点复习卡</h1><img src="file:///tmp/a.png" data-generator="gpt-image-2"><p>照片 依据 诊断</p>'
+
+        rows = check_subject_knowledge_cards_output(noisy_text, noisy_html)
+
+        self.assertFalse(
+            next(
+                row
+                for row in rows
+                if row.code == "knowledge_card_no_forbidden_text_markdown"
+            ).passed
+        )
+        self.assertFalse(
+            next(
+                row
+                for row in rows
+                if row.code == "knowledge_card_no_forbidden_text_html"
+            ).passed
+        )
+        self.assertIn("photo-", forbidden_knowledge_card_matches(noisy_text))
+        self.assertIn("照片", forbidden_knowledge_card_matches(noisy_html))
+
+    def test_knowledge_card_output_rejects_chapter_labels_in_image_metadata(self):
+        rows = check_subject_knowledge_cards_output(
+            "# 科学 知识点复习卡\n\n## 1. 第1章 第3节 第2课时 种子的结构与萌发\n",
+            '<h1>科学 知识点复习卡</h1><figure><img src="file:///tmp/a.png" alt="第1章 第3节 第2课时 种子的结构与萌发" data-generator="gpt-image-2"><figcaption>第1章 第3节 第2课时 种子的结构与萌发</figcaption></figure>',
+        )
+
+        row = next(
+            row for row in rows if row.code == "knowledge_card_image_labels_are_concept_only"
+        )
         self.assertFalse(row.passed)
 
 

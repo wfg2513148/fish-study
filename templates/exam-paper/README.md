@@ -20,6 +20,12 @@ The generator fails if required images are missing. Current minimum image refere
 - science: 16
 - English: 1
 
+The stable paper templates keep choice questions at 60% by question count:
+
+- math: 15 choice questions out of 25 total questions
+- science: 18 choice questions out of 30 total questions
+- English: 27 choice-style questions out of 45 total question items
+
 ## Generate PDFs
 
 From the repository root:

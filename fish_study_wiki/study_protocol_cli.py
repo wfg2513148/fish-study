@@ -66,6 +66,10 @@ def run_wrong(
             (f"{output.subject}_knowledge_markdown", output.knowledge_markdown)
             for output in result.subject_outputs
         ),
+        *tuple(
+            (f"{output.subject}_knowledge_pdf", output.knowledge_pdf)
+            for output in result.subject_outputs
+        ),
     )
     return 0
 

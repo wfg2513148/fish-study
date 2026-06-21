@@ -3,13 +3,30 @@ import io
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from fish_study_wiki import cli
 from fish_study_wiki import study_protocol_cli
 
 
+TINY_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+    b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00"
+    b"\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x01\x01\x01\x00"
+    b"\x1b\xb6\xeeV\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
 class StudyProtocolCliTests(unittest.TestCase):
+    def setUp(self):
+        patcher = patch(
+            "fish_study_wiki.study_protocol_writer.prepare_knowledge_card_diagrams",
+            side_effect=_fake_knowledge_card_diagrams,
+        )
+        self.addCleanup(patcher.stop)
+        patcher.start()
+
     def test_wrong_command_writes_student_answer_and_obsidian_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -177,6 +194,21 @@ class StudyProtocolCliTests(unittest.TestCase):
         with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
             status = study_protocol_cli.main(list(args))
         return stdout.getvalue(), stderr.getvalue(), status
+
+
+def _fake_knowledge_card_diagrams(training, subject, output_dir):
+    asset_dir = output_dir / "test-knowledge-card-assets"
+    asset_dir.mkdir(parents=True, exist_ok=True)
+    assets = {}
+    for index, cluster in enumerate(
+        (item for item in training.clusters if item.subject == subject),
+        start=1,
+    ):
+        for match in cluster.matched_knowledge:
+            path = asset_dir / f"{subject}-{index}.png"
+            path.write_bytes(TINY_PNG)
+            assets[match.note] = path
+    return assets
 
 
 if __name__ == "__main__":

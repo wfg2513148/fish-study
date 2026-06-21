@@ -2,6 +2,46 @@
   "schema_version": 1,
   "nodes": [
     {
+      "id": "error:不会:方法不会",
+      "type": "error_type",
+      "label": "不会/方法不会",
+      "primary_reason": "不会",
+      "secondary_reason": "方法不会",
+      "sticker_color": "red"
+    },
+    {
+      "id": "error:不会:条件转化失败",
+      "type": "error_type",
+      "label": "不会/条件转化失败",
+      "primary_reason": "不会",
+      "secondary_reason": "条件转化失败",
+      "sticker_color": "red"
+    },
+    {
+      "id": "error:不会:概念不清",
+      "type": "error_type",
+      "label": "不会/概念不清",
+      "primary_reason": "不会",
+      "secondary_reason": "概念不清",
+      "sticker_color": "red"
+    },
+    {
+      "id": "error:马虎:单位/符号错误",
+      "type": "error_type",
+      "label": "马虎/单位/符号错误",
+      "primary_reason": "马虎",
+      "secondary_reason": "单位/符号错误",
+      "sticker_color": "yellow"
+    },
+    {
+      "id": "error:马虎:审题漏条件",
+      "type": "error_type",
+      "label": "马虎/审题漏条件",
+      "primary_reason": "马虎",
+      "secondary_reason": "审题漏条件",
+      "sticker_color": "yellow"
+    },
+    {
       "id": "scope:七年级:下册:数学",
       "type": "curriculum_scope",
       "label": "数学七年级下册",
@@ -54,6 +94,120 @@
       "volume": "下册",
       "version": "浙教版",
       "status": "available"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1",
+      "type": "study_event",
+      "label": "2026-06-20 科学 密度与体积测量综合",
+      "date": "2026-06-20",
+      "source_batch": "2026-06-20-two-photo-batches-science-wrong-questions",
+      "subject": "科学",
+      "problem_type": "密度与体积测量综合",
+      "sticker_color": "red",
+      "primary_reason": "不会",
+      "secondary_reason": "方法不会",
+      "confidence": "high",
+      "confirmation_status": "confirmed",
+      "difficulty_mix": [
+        "basic",
+        "standard",
+        "variant"
+      ]
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2",
+      "type": "study_event",
+      "label": "2026-06-20 科学 物态变化与分子热运动",
+      "date": "2026-06-20",
+      "source_batch": "2026-06-20-two-photo-batches-science-wrong-questions",
+      "subject": "科学",
+      "problem_type": "物态变化与分子热运动",
+      "sticker_color": "yellow",
+      "primary_reason": "马虎",
+      "secondary_reason": "审题漏条件",
+      "confidence": "high",
+      "confirmation_status": "confirmed",
+      "difficulty_mix": [
+        "basic",
+        "standard",
+        "variant"
+      ]
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:3",
+      "type": "study_event",
+      "label": "2026-06-20 科学 电解水实验与图像判断",
+      "date": "2026-06-20",
+      "source_batch": "2026-06-20-two-photo-batches-science-wrong-questions",
+      "subject": "科学",
+      "problem_type": "电解水实验与图像判断",
+      "sticker_color": "red",
+      "primary_reason": "不会",
+      "secondary_reason": "条件转化失败",
+      "confidence": "high",
+      "confirmation_status": "confirmed",
+      "difficulty_mix": [
+        "basic",
+        "standard",
+        "variant"
+      ]
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4",
+      "type": "study_event",
+      "label": "2026-06-20 科学 化学式意义与计算",
+      "date": "2026-06-20",
+      "source_batch": "2026-06-20-two-photo-batches-science-wrong-questions",
+      "subject": "科学",
+      "problem_type": "化学式意义与计算",
+      "sticker_color": "red",
+      "primary_reason": "不会",
+      "secondary_reason": "概念不清",
+      "confidence": "high",
+      "confirmation_status": "confirmed",
+      "difficulty_mix": [
+        "basic",
+        "standard",
+        "variant"
+      ]
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5",
+      "type": "study_event",
+      "label": "2026-06-20 科学 物质性质与材料判断",
+      "date": "2026-06-20",
+      "source_batch": "2026-06-20-two-photo-batches-science-wrong-questions",
+      "subject": "科学",
+      "problem_type": "物质性质与材料判断",
+      "sticker_color": "yellow",
+      "primary_reason": "马虎",
+      "secondary_reason": "单位/符号错误",
+      "confidence": "high",
+      "confirmation_status": "confirmed",
+      "difficulty_mix": [
+        "basic",
+        "standard",
+        "variant"
+      ]
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6",
+      "type": "study_event",
+      "label": "2026-06-20 科学 植物结构与生殖方式",
+      "date": "2026-06-20",
+      "source_batch": "2026-06-20-two-photo-batches-science-wrong-questions",
+      "subject": "科学",
+      "problem_type": "植物结构与生殖方式",
+      "sticker_color": "red",
+      "primary_reason": "不会",
+      "secondary_reason": "概念不清",
+      "confidence": "high",
+      "confirmation_status": "confirmed",
+      "difficulty_mix": [
+        "basic",
+        "standard",
+        "variant"
+      ]
     },
     {
       "id": "topic:七年级:下册:数学:期末提优1 相交线与平行线",
@@ -2446,7 +2600,7 @@
       "source_id": "5star-science-zjjy-g7b-2026spring",
       "source_file": "第1章　第4节　第1课时　细菌与真菌.pptx",
       "status": "extracted",
-      "confidence": "high",
+      "confidence": "medium",
       "last_confirmed": "2026-06-19",
       "lifecycle_status": "active",
       "supersedes": [],
@@ -2514,7 +2668,7 @@
       "source_id": "5star-science-zjjy-g7b-2026spring",
       "source_file": "第2章　专题11　分子、原子、离子、元素与物质之间的关系.pptx",
       "status": "extracted",
-      "confidence": "high",
+      "confidence": "medium",
       "last_confirmed": "2026-06-19",
       "lifecycle_status": "active",
       "supersedes": [],
@@ -4273,6 +4427,102 @@
     }
   ],
   "edges": [
+    {
+      "id": "error:不会:方法不会->affects->topic:七年级:下册:科学:第3章 专题16 探究实践：测量石块和盐水的密度",
+      "source": "error:不会:方法不会",
+      "target": "topic:七年级:下册:科学:第3章 专题16 探究实践：测量石块和盐水的密度",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:方法不会->affects->topic:七年级:下册:科学:第3章 专题18 特殊情境下的密度计算",
+      "source": "error:不会:方法不会",
+      "target": "topic:七年级:下册:科学:第3章 专题18 特殊情境下的密度计算",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:方法不会->affects->topic:七年级:下册:科学:第3章 第1节 第2课时 密度",
+      "source": "error:不会:方法不会",
+      "target": "topic:七年级:下册:科学:第3章 第1节 第2课时 密度",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:条件转化失败->affects->topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "source": "error:不会:条件转化失败",
+      "target": "topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第1章 第3节 第2课时 种子的结构与萌发",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第1章 第3节 第2课时 种子的结构与萌发",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第1章 第4节 第1课时 细菌与真菌",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第1章 第4节 第1课时 细菌与真菌",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第2章 专题14 化学式相关的推断和计算",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第2章 专题14 化学式相关的推断和计算",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第2章 第5节 第1课时 化学式",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第2章 第5节 第1课时 化学式",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第2章 第5节 第3课时 相对分子质量",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第2章 第5节 第3课时 相对分子质量",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第4章 第3节 第1课时 植物的根系与物质吸收",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第4章 第3节 第1课时 植物的根系与物质吸收",
+      "type": "affects"
+    },
+    {
+      "id": "error:不会:概念不清->affects->topic:七年级:下册:科学:第4章 第3节 第2课时 植物的茎与物质的运输",
+      "source": "error:不会:概念不清",
+      "target": "topic:七年级:下册:科学:第4章 第3节 第2课时 植物的茎与物质的运输",
+      "type": "affects"
+    },
+    {
+      "id": "error:马虎:单位/符号错误->affects->topic:七年级:下册:科学:第3章 第3节 第1课时 物质的变化与性质",
+      "source": "error:马虎:单位/符号错误",
+      "target": "topic:七年级:下册:科学:第3章 第3节 第1课时 物质的变化与性质",
+      "type": "affects"
+    },
+    {
+      "id": "error:马虎:单位/符号错误->affects->topic:七年级:下册:科学:第3章 第3节 第2课时 温度对物质性质的影响、探索物质变化和性质的方法",
+      "source": "error:马虎:单位/符号错误",
+      "target": "topic:七年级:下册:科学:第3章 第3节 第2课时 温度对物质性质的影响、探索物质变化和性质的方法",
+      "type": "affects"
+    },
+    {
+      "id": "error:马虎:审题漏条件->affects->topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "source": "error:马虎:审题漏条件",
+      "target": "topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "type": "affects"
+    },
+    {
+      "id": "error:马虎:审题漏条件->affects->topic:七年级:下册:科学:第3章 专题20 水沸腾的探究实验",
+      "source": "error:马虎:审题漏条件",
+      "target": "topic:七年级:下册:科学:第3章 专题20 水沸腾的探究实验",
+      "type": "affects"
+    },
+    {
+      "id": "error:马虎:审题漏条件->affects->topic:七年级:下册:科学:第3章 第2节第3课时 汽化和液化",
+      "source": "error:马虎:审题漏条件",
+      "target": "topic:七年级:下册:科学:第3章 第2节第3课时 汽化和液化",
+      "type": "affects"
+    },
     {
       "id": "scope:七年级:下册:数学->includes->topic:七年级:下册:数学:期末提优1 相交线与平行线",
       "source": "scope:七年级:下册:数学",
@@ -7266,6 +7516,138 @@
       "source": "source:5star-science-zjjy-g7b-2026spring",
       "target": "scope:七年级:下册:科学",
       "type": "covers"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1->diagnosed_as->error:不会:方法不会",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1",
+      "target": "error:不会:方法不会",
+      "type": "diagnosed_as"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1->targets->topic:七年级:下册:科学:第3章 专题16 探究实践：测量石块和盐水的密度",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1",
+      "target": "topic:七年级:下册:科学:第3章 专题16 探究实践：测量石块和盐水的密度",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1->targets->topic:七年级:下册:科学:第3章 专题18 特殊情境下的密度计算",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1",
+      "target": "topic:七年级:下册:科学:第3章 专题18 特殊情境下的密度计算",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1->targets->topic:七年级:下册:科学:第3章 第1节 第2课时 密度",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:1",
+      "target": "topic:七年级:下册:科学:第3章 第1节 第2课时 密度",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2->diagnosed_as->error:马虎:审题漏条件",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2",
+      "target": "error:马虎:审题漏条件",
+      "type": "diagnosed_as"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2->targets->topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2",
+      "target": "topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2->targets->topic:七年级:下册:科学:第3章 专题20 水沸腾的探究实验",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2",
+      "target": "topic:七年级:下册:科学:第3章 专题20 水沸腾的探究实验",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2->targets->topic:七年级:下册:科学:第3章 第2节第3课时 汽化和液化",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:2",
+      "target": "topic:七年级:下册:科学:第3章 第2节第3课时 汽化和液化",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:3->diagnosed_as->error:不会:条件转化失败",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:3",
+      "target": "error:不会:条件转化失败",
+      "type": "diagnosed_as"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:3->targets->topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:3",
+      "target": "topic:七年级:下册:科学:第2章 专题11 分子、原子、离子、元素与物质之间的关系",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4->diagnosed_as->error:不会:概念不清",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4",
+      "target": "error:不会:概念不清",
+      "type": "diagnosed_as"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4->targets->topic:七年级:下册:科学:第2章 专题14 化学式相关的推断和计算",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4",
+      "target": "topic:七年级:下册:科学:第2章 专题14 化学式相关的推断和计算",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4->targets->topic:七年级:下册:科学:第2章 第5节 第1课时 化学式",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4",
+      "target": "topic:七年级:下册:科学:第2章 第5节 第1课时 化学式",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4->targets->topic:七年级:下册:科学:第2章 第5节 第3课时 相对分子质量",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:4",
+      "target": "topic:七年级:下册:科学:第2章 第5节 第3课时 相对分子质量",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5->diagnosed_as->error:马虎:单位/符号错误",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5",
+      "target": "error:马虎:单位/符号错误",
+      "type": "diagnosed_as"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5->targets->topic:七年级:下册:科学:第3章 第3节 第1课时 物质的变化与性质",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5",
+      "target": "topic:七年级:下册:科学:第3章 第3节 第1课时 物质的变化与性质",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5->targets->topic:七年级:下册:科学:第3章 第3节 第2课时 温度对物质性质的影响、探索物质变化和性质的方法",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:5",
+      "target": "topic:七年级:下册:科学:第3章 第3节 第2课时 温度对物质性质的影响、探索物质变化和性质的方法",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6->diagnosed_as->error:不会:概念不清",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6",
+      "target": "error:不会:概念不清",
+      "type": "diagnosed_as"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6->targets->topic:七年级:下册:科学:第1章 第3节 第2课时 种子的结构与萌发",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6",
+      "target": "topic:七年级:下册:科学:第1章 第3节 第2课时 种子的结构与萌发",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6->targets->topic:七年级:下册:科学:第1章 第4节 第1课时 细菌与真菌",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6",
+      "target": "topic:七年级:下册:科学:第1章 第4节 第1课时 细菌与真菌",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6->targets->topic:七年级:下册:科学:第4章 第3节 第1课时 植物的根系与物质吸收",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6",
+      "target": "topic:七年级:下册:科学:第4章 第3节 第1课时 植物的根系与物质吸收",
+      "type": "targets"
+    },
+    {
+      "id": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6->targets->topic:七年级:下册:科学:第4章 第3节 第2课时 植物的茎与物质的运输",
+      "source": "study_event:2026-06-20:2026-06-20-two-photo-batches-science-wrong-questions:6",
+      "target": "topic:七年级:下册:科学:第4章 第3节 第2课时 植物的茎与物质的运输",
+      "type": "targets"
     }
   ]
 }

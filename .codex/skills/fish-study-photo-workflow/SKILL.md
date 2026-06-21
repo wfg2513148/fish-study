@@ -64,6 +64,60 @@ Daily knowledge explanations must not become plain text dumps when diagrams woul
 
 If the user asks for a real mock exam, use `fish-study-exam-paper`; that workflow enforces `templates/exam-paper/figure-manifest.json`, local image existence, image readability, and PDF embedding.
 
+## Knowledge Card Rule
+
+Student-facing knowledge cards are generated from the current batch of wrong
+questions, but they must teach the knowledge point rather than describe the
+wrong-question record.
+
+- Extract cards from confirmed `matched_knowledge` in the current batch.
+- Filter `待定位`, low-confidence, and unorderable knowledge points from the
+  student-facing card set.
+- Deduplicate by knowledge-point name so the same point appears once.
+- Sort by learning order, using `grade -> volume -> chapter -> note` and then
+  concept/property/method/application order; never sort by photo order,
+  question order, color, or diagnosis order.
+- Each card must include the knowledge-point name, core definition or
+  structure, key formula/rule/relationship, application steps or solution
+  tricks, common pitfalls, a self-check prompt, and an independent diagram when
+  helpful.
+- Knowledge-card diagrams must be generated with `gpt-image-2` through
+  `~/.codex/skills/gpt-image-2/scripts/generate-image.sh`; do not use hand-made
+  SVG, CSS shapes, screenshots, or placeholder diagrams for student-facing
+  knowledge cards.
+- Do not draw for decoration. Classify each card image need as `required`,
+  `optional`, or `omit`; omit images for concepts where a diagram would be
+  generic, misleading, or less useful than text.
+- Each generated image must have a prompt spec with `visual_goal`, `must_show`,
+  `must_not_show`, `allowed_labels`, and `common_misconception`.
+- Each generated image needs a visual review: it must accurately show the
+  knowledge relationship, avoid misleading arrows or symbols, keep Chinese
+  labels readable, avoid crowding/cropping on A4, and contain no chapter,
+  section, lesson, question, source, or diagnosis text. If it remains
+  unacceptable after 1-2 retries, delete it and render the card without an
+  image.
+- When Chinese labels are useful, integrate short labels with the diagram
+  objects by placing them near the relevant part and using leader lines or
+  arrows. Do not add detached top/bottom overlay explanation boxes, long text
+  panels, or decorative captions inside the image. If the image does not
+  support the core knowledge point after labels, omit it.
+- Knowledge-card image prompts, image alt text, and image captions must use a
+  concept-only title; do not include textbook locating labels such as `第几章`,
+  `第几节`, `第几课时`, or `专题编号` in images or image captions.
+- Diagrams are based on the knowledge point itself, not on the original
+  question figure. They may simplify or clarify the concept, but must not
+  include original photo IDs, filenames, question numbers, source labels,
+  diagnosis evidence, sticker colors, or training advice.
+- During early targeted generation, internal error types may guide the
+  explanation focus, but the card should phrase this as a student-facing
+  `复习重点` instead of exposing diagnosis wording.
+- The student-facing card text must not contain photo/source/question/diagnosis
+  wording such as `photo-`, `照片`, `来源`, `第1题`, `本题`, `这道题`, `错因`,
+  `依据`, `诊断`, `训练建议`, `难度梯度`, `红色`, `黄色`, or `蓝色`.
+- If a student can read the card without seeing the original wrong question and
+  still explain what to remember, how to calculate or judge, and what to avoid,
+  the card is acceptable.
+
 ## Multi-Photo Subject JSON
 
 Use `source_photos` whenever the user uploads photos:

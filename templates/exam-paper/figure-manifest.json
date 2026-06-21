@@ -7,7 +7,12 @@
     "Do not put long question text inside images; keep question text in HTML.",
     "Keep only necessary labels such as A/B/C/D, 图 1, 图 2, axes, scale marks, or simple place names.",
     "Figures must be readable after A4 PDF export; generated HTML must not render figures below 160 CSS px wide.",
-    "If a generated diagram is reused as a stable sample, commit it under templates/exam-paper/assets or templates/exam-paper/mobile/science-assets."
+    "If a generated diagram is reused as a stable sample, commit it under templates/exam-paper/assets or templates/exam-paper/mobile/science-assets.",
+    "For source-photo reconstruction papers, the source figure is the contract: preserve the original figure meaning, object count, grouping, labels, data values, axis names, relative positions, and experiment-control relationships.",
+    "Do not let the image model invent a new diagram, add explanatory text, omit key objects, simplify controlled experiments, or change table/graph values.",
+    "Only optimize line clarity, print contrast, alignment, and A4 readability when those changes do not alter the original question intent.",
+    "Text inside reconstructed source figures must be limited to text present in the original figure and must remain in Chinese where the original uses Chinese.",
+    "Before delivery, visually compare each reconstructed figure against its source photo or a locked detail manifest; regenerate any figure whose key details do not match."
   ],
   "knowledge_explanation_rules": [
     "Knowledge-point explanations should be illustrated when the concept is visual, spatial, experimental, structural, map-based, chart-based, or process-based.",
